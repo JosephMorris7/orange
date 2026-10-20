@@ -1,0 +1,41 @@
+:root { --ink:#16110d; --paper:#fbf6ef; --orange:#ff6a13; --apricot:#ffb37a; --teal:#0e8c7f; }
+html, body { margin:0; width:100%; height:100%; background:transparent; overflow:hidden; user-select:none; -webkit-user-select:none; }
+body { font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif; color:var(--paper); }
+#stage { position:fixed; inset:0; }
+svg.wheel { width:100%; height:100%; display:block; overflow:visible; }
+.hidden-wheel #stage { visibility:hidden; }
+
+.disc { fill:rgba(22,17,13,.88); stroke:rgba(255,179,122,.22); stroke-width:1.5; }
+.shadow-ring { fill:none; stroke:rgba(0,0,0,.35); stroke-width:28; filter:blur(14px); }
+
+.wedge { cursor:pointer; }
+.wedge > path { fill:rgba(251,246,239,.09); stroke:rgba(251,246,239,.09); stroke-width:6; stroke-linejoin:round; transition:fill .09s ease, stroke .09s ease, transform .12s ease; transform-origin:320px 320px; }
+.wedge.hot > path { fill:var(--orange); stroke:var(--orange); transform:scale(1.02); }
+.wedge.off > path { fill:rgba(251,246,239,.04); stroke:rgba(251,246,239,.04); }
+.wedge.off .lbl, .wedge.off .ico { opacity:.38; }
+.wedge.more > path { fill:rgba(255,179,122,.14); stroke:rgba(255,179,122,.14); }
+.wedge.shake { animation:shake .3s; }
+.wedge .lbl { fill:var(--paper); font-weight:700; letter-spacing:.04em; text-anchor:middle; pointer-events:none; font-size:15px; }
+.wedge.big .lbl { font-size:19px; letter-spacing:.02em; }
+.wedge .ico { color:var(--paper); pointer-events:none; }
+.wedge.hot .lbl { fill:var(--ink); }
+.wedge.hot .ico { color:var(--ink); }
+
+.hub { fill:var(--ink); stroke:rgba(255,179,122,.35); stroke-width:1.5; }
+.hub-title { fill:var(--paper); font-size:18px; font-weight:700; text-anchor:middle; letter-spacing:.06em; }
+.hub-sub { fill:var(--apricot); font-size:12.5px; text-anchor:middle; }
+.hub.hot { fill:var(--ink); }
+.hub-dot { fill:var(--orange); }
+
+/* open animation: the disc springs out, wedges follow in a quick stagger */
+.opening .disc-group { animation:pop .42s cubic-bezier(.2,1.5,.4,1) both; transform-origin:320px 320px; }
+.opening .wedge { animation:wedge-in .38s cubic-bezier(.2,1.4,.4,1) both; animation-delay:calc(var(--i) * 28ms + 40ms); }
+.opening .hub-group { animation:pop .4s cubic-bezier(.2,1.5,.4,1) .06s both; transform-origin:320px 320px; }
+@keyframes pop { from { transform:scale(.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+@keyframes wedge-in { from { opacity:0; transform:scale(.8); } to { opacity:1; transform:scale(1); } }
+@keyframes shake { 20% { transform:translateX(-5px); } 50% { transform:translateX(5px); } 80% { transform:translateX(-3px); } }
+@media (prefers-reduced-motion: reduce) { .opening .disc-group, .opening .wedge, .opening .hub-group { animation:none; } }
+
+/* browser dev preview only */
+body.dev { background:linear-gradient(135deg,#e8dccb,#cdbba4); }
+

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Orange</title>
+  <path d="M30 34 L54.43 25.11 A26 26 0 1 1 38.89 9.57 Z" fill="#ff6a13"/>
+  <path d="M33.54 30.46 L57.97 21.57 A26 26 0 0 0 42.43 6.03 Z" fill="#ffb37a"/>
+  <circle cx="30" cy="34" r="6" fill="#fbf6ef"/>
+</svg>

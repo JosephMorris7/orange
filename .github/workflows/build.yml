@@ -1,0 +1,51 @@
+name: build
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux-tests:
+    # engine + tools + app logic (the Windows-only layer is stubbed here)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev \
+            ffmpeg imagemagick pandoc poppler-utils p7zip-full libimage-exiftool-perl qpdf
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: ui/package-lock.json }
+      - run: npm ci && npm run build
+        working-directory: ui
+      - run: cargo test --workspace
+      - name: Windows layer type-check (against the real windows crate API)
+        run: scripts/check-windows-types.sh
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: ui/package-lock.json }
+      - name: Fetch helper programs
+        run: ./scripts/fetch-deps.ps1
+        shell: pwsh
+        continue-on-error: true
+      - run: npm ci
+        working-directory: ui
+      - run: cargo install tauri-cli --version "^2" --locked
+      - run: cargo test -p orange-app -p orange-core
+      - run: cargo tauri build
+        working-directory: src-tauri
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orange-windows-installers
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/msi/*.msi

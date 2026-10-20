@@ -1,0 +1,24 @@
+[workspace]
+resolver = "2"
+members = ["crates/orange-core", "crates/orange-convert", "crates/orange-tools", "crates/orange-cli", "src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Orange contributors"]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tempfile = "3"
+orange-core = { path = "crates/orange-core" }
+orange-convert = { path = "crates/orange-convert" }
+orange-tools = { path = "crates/orange-tools" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = "s"

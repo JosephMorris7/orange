@@ -1,0 +1,27 @@
+@import './base.css';
+.app { max-width:920px; margin:0 auto; padding:26px 28px 60px; display:grid; gap:18px; }
+.top { display:flex; align-items:center; gap:14px; }
+.top img { width:40px; height:40px; }
+.top .grow h1 span { color:var(--orange); }
+.hero { display:grid; grid-template-columns:1.15fr 1fr; gap:22px; align-items:center; background:linear-gradient(135deg,var(--card),var(--bg2)); }
+.hero ol { margin:12px 0 0; padding:0; list-style:none; display:grid; gap:10px; }
+.hero li { display:flex; gap:10px; align-items:flex-start; }
+.hero li b { flex:none; width:24px; height:24px; border-radius:50%; background:var(--orange); color:#1b0e04; display:grid; place-items:center; font-size:12px; }
+kbd { font:600 12px/1 "Cascadia Mono",Consolas,monospace; background:var(--bg2); border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:2px 6px; }
+.hero .illu svg { width:100%; max-width:280px; }
+.hero .illu { display:grid; justify-items:center; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+@media (max-width:760px) { .hero, .grid2 { grid-template-columns:1fr; } }
+.section-title { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.keys { display:grid; grid-template-columns:auto 1fr; gap:8px 12px; align-items:center; margin-bottom:14px; }
+.toggle { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.job { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:9px 0; border-top:1px solid var(--line); }
+.job:first-child { border-top:0; }
+.job .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+.deps { width:100%; border-collapse:collapse; }
+.deps td { padding:7px 0; border-top:1px solid var(--line); vertical-align:top; } .deps tr:first-child td { border-top:0; }
+.deps td:last-child { text-align:right; }
+.empty { color:var(--muted); padding:8px 0; }
+.banner { display:flex; gap:12px; align-items:center; background:var(--ink); color:var(--paper); border-radius:var(--radius); padding:14px 18px; }
+.banner .btn { margin-left:auto; }
+.legal { color:var(--muted); font-size:12px; text-align:center; margin-top:8px; }
