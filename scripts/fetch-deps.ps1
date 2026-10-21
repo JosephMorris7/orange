@@ -41,7 +41,12 @@ function Ensure-Installed($id) {
 function Copy-Tree($from, $to, $exclude = @()) {
   if (Test-Path $to) { Remove-Item -Recurse -Force $to }
   New-Item -ItemType Directory -Force $to | Out-Null
-  Copy-Item -Path (Join-Path $from '*') -Destination $to -Recurse -Force -Exclude $exclude
+  $xf = @(); foreach ($e in $exclude) { $xf += $e }
+  $args2 = @($from, $to, '/E', '/NFL', '/NDL', '/NJH', '/NJS', '/NP')
+  if ($xf.Count) { $args2 += '/XF'; $args2 += $xf }
+  & robocopy @args2 | Out-Null   # robocopy exit codes 0-7 mean success
+  if ($LASTEXITCODE -ge 8) { throw "robocopy failed copying $from" }
+  $global:LASTEXITCODE = 0
 }
 function Find-Under($root, $filter) {
   if (-not (Test-Path $root)) { return $null }
@@ -64,14 +69,20 @@ Ensure-Installed 'oschwartz10612.Poppler'
 $pp = Find-Under $winget 'pdftoppm.exe'
 if ($pp) { New-Item -ItemType Directory -Force "$bin\poppler" | Out-Null; Get-ChildItem $pp.DirectoryName -File | Where-Object { $_.Extension -in '.exe', '.dll' } | Copy-Item -Destination "$bin\poppler" -Force } else { Write-Warning 'poppler was not found after install.' }
 
-# ExifTool (exiftool.exe plus its exiftool_files folder)
-Ensure-Installed 'OliverBetz.ExifTool'
-$ex = Find-Under $winget 'exiftool*.exe'
-if ($ex) {
-  Copy-Tree $ex.DirectoryName "$bin\exiftool"
-  $k = Join-Path "$bin\exiftool" 'exiftool(-k).exe'
-  if ((Test-Path $k) -and -not (Test-Path "$bin\exiftool\exiftool.exe")) { Rename-Item $k 'exiftool.exe' }
-} else { Write-Warning 'ExifTool was not found after install.' }
+# ExifTool (own script, with fallbacks)
+try { & (Join-Path $PSScriptRoot 'fetch-exiftool.ps1') } catch { Write-Warning "ExifTool failed: $_" }
+
+# Smoke test: the bundled ImageMagick must really decode and encode a JPEG from its own folder
+$mg = Join-Path $bin 'imagemagick\magick.exe'
+if (Test-Path $mg) {
+  $env:MAGICK_HOME = Split-Path $mg
+  $oldPath = $env:PATH; $env:PATH = (Split-Path $mg) + ';' + (($env:PATH -split ';' | Where-Object { $_ -notmatch 'ImageMagick' }) -join ';')
+  $t = Join-Path $tmp 'smoke.jpg'
+  & $mg -size 16x16 xc:orange $t 2>&1 | Out-Host
+  & $mg $t (Join-Path $tmp 'smoke.png') 2>&1 | Out-Host
+  $env:PATH = $oldPath
+  if (-not (Test-Path (Join-Path $tmp 'smoke.png'))) { Write-Warning 'ImageMagick smoke test FAILED: do not ship this build.' } else { Write-Host 'ImageMagick smoke test passed.' -ForegroundColor Green }
+}
 
 # Check that everything the installer is supposed to carry is really there
 $missing = @()

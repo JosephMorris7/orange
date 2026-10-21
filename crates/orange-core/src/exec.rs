@@ -19,7 +19,24 @@ pub fn command(program: &Path) -> Command {
     let mut c = Command::new(program);
     hide_window(&mut c);
     point_imagemagick_at_itself(&mut c, program);
+    put_dir_on_path(&mut c, program);
     c
+}
+
+/// Helpers that ship their own DLLs (ImageMagick's coder modules, poppler, qpdf) must find them even on a PC
+/// that never installed the program: Windows resolves a module's dependencies through PATH, not the exe folder.
+fn put_dir_on_path(cmd: &mut Command, program: &Path) {
+    let Some(dir) = program.parent() else { return };
+    if dir.as_os_str().is_empty() {
+        return;
+    }
+    let mut paths = vec![dir.to_path_buf()];
+    if let Some(old) = std::env::var_os("PATH") {
+        paths.extend(std::env::split_paths(&old));
+    }
+    if let Ok(joined) = std::env::join_paths(paths) {
+        cmd.env("PATH", joined);
+    }
 }
 
 /// A copy of ImageMagick shipped inside Orange must load its coders and config files from its own folder,
