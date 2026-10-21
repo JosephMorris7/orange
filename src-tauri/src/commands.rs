@@ -20,7 +20,7 @@ fn pbs(paths: &[String]) -> Vec<PathBuf> {
 }
 
 fn ctx(st: &AppState) -> Ctx {
-    Ctx::new(st.caps.clone()).with_out_dir(st.settings().out_dir())
+    Ctx::new(st.caps()).with_out_dir(st.settings().out_dir())
 }
 
 fn emitter(app: &AppHandle) -> Arc<TauriEmitter> {
@@ -39,15 +39,29 @@ pub fn app_info() -> Value {
 
 #[tauri::command]
 pub fn capabilities(state: State<'_, AppState>) -> Value {
-    state.caps.to_json()
+    state.caps().to_json()
+}
+
+/// Look for the helper programs again, e.g. after LibreOffice was installed.
+#[tauri::command]
+pub fn recheck_helpers(state: State<'_, AppState>) -> Value {
+    state.refresh_caps();
+    state.caps().to_json()
+}
+
+/// Install LibreOffice (needed only for Word, Excel and PowerPoint files) through winget, in a visible window,
+/// or open its download page when winget is not available.
+#[tauri::command]
+pub fn install_libreoffice() -> R<()> {
+    shell::install_libreoffice()
 }
 
 #[tauri::command]
 pub async fn wheel_items(state: State<'_, AppState>, mode: String, paths: Vec<String>) -> R<Vec<WheelItem>> {
     let p = pbs(&paths);
     match mode.as_str() {
-        "convert" => Ok(wheel::convert_items(&p, &state.caps)),
-        "tools" => Ok(wheel::tool_items(&p, &state.caps)),
+        "convert" => Ok(wheel::convert_items(&p, &state.caps())),
+        "tools" => Ok(wheel::tool_items(&p, &state.caps())),
         "actions" => Ok(wheel::action_items(!p.is_empty())),
         other => Err(format!("unknown wheel mode: {other}")),
     }
@@ -99,7 +113,7 @@ pub fn wheel_cancel(app: AppHandle) {
 
 fn start_convert(app: &AppHandle, state: &AppState, paths: Vec<String>, to: String) -> String {
     let files = pbs(&paths);
-    state.jobs.spawn(emitter(app), state.caps.clone(), state.settings().out_dir(), move |ctx| {
+    state.jobs.spawn(emitter(app), state.caps(), state.settings().out_dir(), move |ctx| {
         let mut outs = Vec::new();
         let n = files.len().max(1) as f32;
         for (i, f) in files.iter().enumerate() {
@@ -114,7 +128,7 @@ fn start_convert(app: &AppHandle, state: &AppState, paths: Vec<String>, to: Stri
 
 fn start_tool(app: &AppHandle, state: &AppState, tool_id: String, paths: Vec<String>, params: Value) -> String {
     let files = pbs(&paths);
-    state.jobs.spawn(emitter(app), state.caps.clone(), state.settings().out_dir(), move |ctx| orange_tools::run_tool(&tool_id, &files, &params, ctx))
+    state.jobs.spawn(emitter(app), state.caps(), state.settings().out_dir(), move |ctx| orange_tools::run_tool(&tool_id, &files, &params, ctx))
 }
 
 #[tauri::command]
@@ -158,12 +172,12 @@ pub async fn web_preview(state: State<'_, AppState>, path: String, max_dim: Opti
 
 #[tauri::command]
 pub async fn file_info(state: State<'_, AppState>, path: String) -> R<Value> {
-    orange_tools::file_info(Path::new(&path), &state.caps).map_err(|e| e.to_string())
+    orange_tools::file_info(Path::new(&path), &state.caps()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn read_metadata(state: State<'_, AppState>, path: String) -> R<Value> {
-    orange_tools::read_metadata(Path::new(&path), &state.caps).map_err(|e| e.to_string())
+    orange_tools::read_metadata(Path::new(&path), &state.caps()).map_err(|e| e.to_string())
 }
 
 /// Text lines or faces, as rectangles in the *source image's* pixels.
@@ -173,10 +187,10 @@ pub async fn read_metadata(state: State<'_, AppState>, path: String) -> R<Value>
 pub async fn detect_regions(state: State<'_, AppState>, path: String, what: String) -> R<Vec<Value>> {
     let c = ctx(&state);
     let src = Path::new(&path);
-    let info = orange_tools::file_info(src, &state.caps).map_err(|e| e.to_string())?;
+    let info = orange_tools::file_info(src, &state.caps()).map_err(|e| e.to_string())?;
     let (sw, sh) = (info["width"].as_f64().unwrap_or(0.0), info["height"].as_f64().unwrap_or(0.0));
     let tmp = orange_tools::web_preview(src, &c, 2400).map_err(|e| e.to_string())?;
-    let tinfo = orange_tools::file_info(&tmp, &state.caps).map_err(|e| e.to_string())?;
+    let tinfo = orange_tools::file_info(&tmp, &state.caps()).map_err(|e| e.to_string())?;
     let (tw, th) = (tinfo["width"].as_f64().unwrap_or(0.0), tinfo["height"].as_f64().unwrap_or(0.0));
     let found = match what.as_str() {
         "text" => ocr::detect_text(&tmp),

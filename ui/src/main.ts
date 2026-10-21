@@ -49,11 +49,11 @@ function wheelMock(): string {
     const p = (rad: number, a: number) => `${(c + rad * Math.sin(a)).toFixed(1)} ${(c - rad * Math.cos(a)).toFixed(1)}`;
     const go = gap / 2 / R, gi = gap / 2 / r;
     const hot = i === 1;
-    d += `<path d="M${p(R, a0 + go)} A${R} ${R} 0 0 1 ${p(R, a1 - go)} L${p(r, a1 - gi)} A${r} ${r} 0 0 0 ${p(r, a0 + gi)}Z" fill="${hot ? '#ff6a13' : 'rgba(251,246,239,.1)'}"/>`;
+    d += `<path d="M${p(R, a0 + go)} A${R} ${R} 0 0 1 ${p(R, a1 - go)} L${p(r, a1 - gi)} A${r} ${r} 0 0 0 ${p(r, a0 + gi)}Z" fill="${hot ? '#f25c05' : 'rgba(251,246,239,.1)'}"/>`;
   }
   const labels = ['JPG', 'PNG', 'WEBP', 'PDF', 'TIFF', 'AVIF'];
   const t = labels.map((l, i) => { const a = (i / n) * Math.PI * 2; const x = c + 68 * Math.sin(a), y = c - 68 * Math.cos(a); return `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${i === 1 ? '#16110d' : '#fbf6ef'}">${l}</text>`; }).join('');
-  return `<svg viewBox="0 0 220 220" role="img" aria-label="Illustration of the Orange wheel"><circle cx="${c}" cy="${c}" r="${R + 6}" fill="#16110d"/>${d}${t}<circle cx="${c}" cy="${c}" r="${r - 6}" fill="#16110d" stroke="#ffb37a" stroke-opacity=".4"/><circle cx="${c}" cy="${c - 12}" r="3" fill="#ff6a13"/></svg>`;
+  return `<svg viewBox="0 0 220 220" role="img" aria-label="Illustration of the Orange wheel"><circle cx="${c}" cy="${c}" r="${R + 6}" fill="#16110d"/>${d}${t}<circle cx="${c}" cy="${c}" r="${r - 6}" fill="#16110d" stroke="#ffb37a" stroke-opacity=".4"/><circle cx="${c}" cy="${c - 12}" r="3" fill="#f25c05"/></svg>`;
 }
 
 function hero(): HTMLElement {
@@ -137,7 +137,10 @@ function depsCard(): HTMLElement {
   return h('section', { class: 'card' },
     h('div', { class: 'section-title' }, icon('archive', 18), h('h2', {}, 'Helper programs')),
     h('p', { class: 'muted small', style: 'margin-bottom:8px' }, missing ? `${missing} not found. Only the options that need them are greyed out in the wheel.` : 'All helper programs found.'),
-    h('table', { class: 'deps' }, ...rows));
+    h('table', { class: 'deps' }, ...rows),
+    h('div', { class: 'row-actions' },
+      deps.soffice && !deps.soffice.found && h('button', { class: 'btn small', type: 'button', onclick: () => { void api.installLibreOffice().then(() => toast('LibreOffice setup opened in a new window.')).catch((e) => toast(String(e))); } }, 'Install LibreOffice'),
+      h('button', { class: 'btn small', type: 'button', onclick: () => { void api.recheckHelpers().then((d) => { deps = d; render(); toast('Checked again.'); }); } }, 'Re-check')));
 }
 
 function render(): void {

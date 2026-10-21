@@ -105,6 +105,7 @@ async function invoke(cmd: string, a: Record<string, unknown>): Promise<unknown>
   const paths = (a.paths as string[]) ?? [];
   switch (cmd) {
     case 'app_info': return { version: '0.1.0', conversion_option_count: 248, tool_count: 26, action_count: 6 };
+    case 'recheck_helpers':
     case 'capabilities': return Object.fromEntries(['ffmpeg', 'ffprobe', 'magick', 'pandoc', 'soffice', 'pdftoppm', '7z', 'exiftool', 'qpdf'].map((d) => [d, { name: d, path: d === 'soffice' || d === '7z' ? null : `C:\\Program Files\\Orange\\bin\\${d}.exe`, found: !(d === 'soffice' || d === '7z') }]));
     case 'wheel_items': {
       const mode = a.mode as string;
@@ -134,6 +135,7 @@ async function invoke(cmd: string, a: Record<string, unknown>): Promise<unknown>
       return { kind: k, duration: 94.5, width: 1920, height: 1080, has_audio: true };
     }
     case 'read_metadata': return { make: 'Fujifilm', model: 'X-T4', lens: null, taken: '2024:06:02 18:21:07', gps: { lat: 35.6595, lon: 139.7005 }, artist: '', copyright: '', description: '', software: null, raw: {} };
+    case 'install_libreoffice': return null;
     case 'detect_regions': return a.what === 'faces' ? [{ x: 620, y: 220, w: 220, h: 260 }] : [{ x: 160, y: 120, w: 520, h: 70 }, { x: 160, y: 820, w: 380, h: 60 }];
     case 'open_tool_window': return null;
     case 'run_action': return { ok: true, message: 'Done' };

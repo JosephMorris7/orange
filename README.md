@@ -20,7 +20,7 @@ Orange is an independent project. It borrows the idea of a drag-and-tap radial m
 | UI | `ui` | Vite + TypeScript, no framework. Runs in a plain browser with a mock backend (`npm run dev`). |
 | Landing page | `site` | Edit `index.fragment.html`, then `python3 site/wrap.py`. |
 
-Formats and helper programs: see `docs/CONTRACT.md`. Pixel work uses ImageMagick, media uses ffmpeg, documents use pandoc (and LibreOffice if installed), PDFs use qpdf and poppler. A missing helper only greys out the options that need it.
+Formats and helper programs: see `docs/CONTRACT.md`. The installer ships ffmpeg, pandoc, qpdf, ImageMagick, poppler, 7-Zip and exiftool, so one download is enough. Only LibreOffice (Word/Excel/PowerPoint files, about 350 MB) is optional: the installer asks at the end of setup whether to install it (downloaded by winget from its official source), and Settings has an **Install LibreOffice** button for later. Share the NSIS `.exe` installer, not the `.msi`; only the `.exe` has that setup step. Pixel work uses ImageMagick, media uses ffmpeg, documents use pandoc (and LibreOffice if installed), PDFs use qpdf and poppler. A missing helper only greys out the options that need it.
 
 Not supported: Pages and RTFD (macOS-only formats).
 
@@ -34,12 +34,16 @@ Not supported: Pages and RTFD (macOS-only formats).
 
 If something misbehaves, the log is `%APPDATA%\Orange\orange.log` (it records hook events, wheel placement and drag events).
 
+## Logo and icons
+
+The master logo is `docs/brand/mark.svg` (orange `#f25c05`). `python3 scripts/make-icons.py` regenerates every icon in `src-tauri/icons/` from it: a bare mark with widened gaps at 16 to 32 px, and the mark on a dark rounded tile from 48 px up. Copy the same SVG to `ui/public/mark.svg` and `site/mark.svg` if you change it.
+
 ## Build
 
 Requirements: Rust stable, Node 22, Visual Studio C++ build tools, WebView2 runtime (included with Windows 11).
 
 ```powershell
-.\scripts\fetch-deps.ps1            # ffmpeg, pandoc, qpdf from GitHub; ImageMagick, poppler, 7-Zip, exiftool via winget
+.\scripts\fetch-deps.ps1            # ffmpeg, pandoc, qpdf from GitHub; ImageMagick, poppler, 7-Zip, exiftool installed with winget and COPIED in
 npm --prefix ui install
 cargo install tauri-cli --version "^2" --locked
 cd src-tauri
@@ -47,6 +51,8 @@ cargo tauri build                   # installers in target\release\bundle
 ```
 
 Development: `cargo tauri dev` from `src-tauri`. To open the wheel without any drag, run the app with `--demo-wheel [convert|tools|actions] [file]` or use the tray menu "Convert…".
+
+The GitHub workflow runs `fetch-deps.ps1` on a runner that may not have winget; if it prints warnings, the CI installer lacks those four helpers. Build releases on a Windows PC, as above.
 
 Linux/macOS (engine and UI development only): `scripts/fetch-deps.sh`, then `cargo test --workspace`.
 
@@ -56,4 +62,4 @@ Orange itself is MIT. The helper programs keep their own licences (ffmpeg LGPL/G
 
 ## Privacy
 
-Orange makes no network connections of its own. Files are processed locally. Settings are stored in `%APPDATA%\Orange\settings.json`.
+Orange makes no network connections of its own (the optional **Install LibreOffice** button starts winget, which downloads LibreOffice). Files are processed locally. Settings are stored in `%APPDATA%\Orange\settings.json`.

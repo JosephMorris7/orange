@@ -184,7 +184,7 @@ so it can be exercised and screenshotted without Tauri. The mock should serve re
 
 ## Visual identity (original — do not imitate Tangerine)
 
-Name: **Orange**. Palette: deep ink `#16110d`, warm paper `#fbf6ef`, signature orange `#ff6a13`, apricot `#ffb37a`, plus a teal counter-accent `#0e8c7f`.
+Name: **Orange**. Palette: deep ink `#16110d`, warm paper `#fbf6ef`, signature orange `#f25c05`, apricot `#ffb37a`, plus a teal counter-accent `#0e8c7f`.
 Type: system UI stack for the app (Segoe UI Variable on Windows); landing page may use Google Fonts (e.g. "Bricolage Grotesque" + "Inter").
 Wheel: translucent acrylic-like disc, 7–8 wedges with 4px gaps, centre label shows the highlighted item, orange highlight, springy open animation.
 Mark: a simple original citrus-slice-free glyph (a circle with a segment wedge pulled out — "radial wheel"), not a tangerine illustration.

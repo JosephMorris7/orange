@@ -8,7 +8,7 @@ export type Background = { type: 'solid'; color: string } | { type: 'gradient'; 
 export function backgroundCtl(onChange: () => void, allowImage: boolean): { el: HTMLElement; get(): Background; css(): string } {
   let type: Background['type'] = 'gradient';
   let imagePath = '';
-  const solid = colorCtl('#ffffff', onChange), from = colorCtl('#ffb37a', onChange), to = colorCtl('#ff6a13', onChange);
+  const solid = colorCtl('#ffffff', onChange), from = colorCtl('#ffb37a', onChange), to = colorCtl('#f25c05', onChange);
   const angle = slider('Angle', 0, 360, 5, 135, onChange);
   const fileLbl = h('span', { class: 'muted small' }, 'No image chosen');
   const pickBtn = h('button', { class: 'btn small', type: 'button', onclick: async () => {

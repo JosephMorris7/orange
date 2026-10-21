@@ -129,6 +129,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::capabilities,
+            commands::recheck_helpers,
+            commands::install_libreoffice,
             commands::wheel_items,
             commands::wheel_commit,
             commands::wheel_cancel,

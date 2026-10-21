@@ -13,10 +13,10 @@ export const mountCrop: Mount = async ({ paths, body, changed }) => {
   let mode: 'region' | 'ratio' = 'region';
 
   const dim = svgEl('path', { 'fill-rule': 'evenodd', fill: 'rgba(22,17,13,.55)' });
-  const box = svgEl('rect', { fill: 'none', stroke: '#ff6a13', 'stroke-width': Math.max(2, W / 400), cursor: 'move' });
+  const box = svgEl('rect', { fill: 'none', stroke: '#f25c05', 'stroke-width': Math.max(2, W / 400), cursor: 'move' });
   const hs = Math.max(8, W / 70);
   const handles: Record<string, SVGRectElement> = {};
-  for (const k of ['nw', 'ne', 'sw', 'se'] as const) { handles[k] = svgEl('rect', { width: hs * 2, height: hs * 2, fill: '#fff', stroke: '#ff6a13', 'stroke-width': hs / 5 }); stage.svg.append(handles[k]); }
+  for (const k of ['nw', 'ne', 'sw', 'se'] as const) { handles[k] = svgEl('rect', { width: hs * 2, height: hs * 2, fill: '#fff', stroke: '#f25c05', 'stroke-width': hs / 5 }); stage.svg.append(handles[k]); }
   stage.svg.prepend(dim); stage.svg.insertBefore(box, handles.nw);
 
   const nx = numberCtl(0, W, 1, r.x, () => fromInputs()), ny = numberCtl(0, H, 1, r.y, () => fromInputs());

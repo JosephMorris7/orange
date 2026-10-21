@@ -7,11 +7,11 @@ use orange_core::Capabilities;
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, AtomicUsize};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::{AppHandle, Emitter as _};
 
 pub struct AppState {
-    pub caps: Arc<Capabilities>,
+    caps: RwLock<Arc<Capabilities>>,
     pub settings: Mutex<Settings>,
     pub settings_file: PathBuf,
     pub jobs: Arc<Jobs>,
@@ -29,7 +29,7 @@ impl AppState {
         let st = settings::load_from(&settings_file);
         let session = Session::new(st.bindings());
         AppState {
-            caps: Arc::new(Capabilities::detect(&[])),
+            caps: RwLock::new(Arc::new(Capabilities::detect(&[]))),
             settings: Mutex::new(st),
             settings_file,
             jobs: Jobs::new(),
@@ -39,6 +39,16 @@ impl AppState {
             wheel_visible: Mutex::new(false),
             tool_windows: AtomicUsize::new(0),
         }
+    }
+
+    /// The helper programs found at the last check.
+    pub fn caps(&self) -> Arc<Capabilities> {
+        self.caps.read().unwrap().clone()
+    }
+
+    /// Look for the helper programs again (after the user installed one).
+    pub fn refresh_caps(&self) {
+        *self.caps.write().unwrap() = Arc::new(Capabilities::detect(&[]));
     }
 
     pub fn settings(&self) -> Settings {

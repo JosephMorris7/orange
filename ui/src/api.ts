@@ -60,6 +60,8 @@ export const extOf = (p: string): string => { const b = baseName(p); const i = b
 export const api = {
   appInfo: () => call<{ version: string; conversion_option_count: number; tool_count: number; action_count: number }>('app_info'),
   capabilities: () => call<DepInfo>('capabilities'),
+  recheckHelpers: () => call<DepInfo>('recheck_helpers'),
+  installLibreOffice: () => call<void>('install_libreoffice'),
   wheelItems: (mode: Mode, paths: string[]) => call<WheelItem[]>('wheel_items', { mode, paths }),
   wheelCommit: (mode: Mode, id: string, paths: string[]) => call<{ kind: 'job'; job_id: string } | { kind: 'dialog' } | { kind: 'done' }>('wheel_commit', { mode, id, paths }),
   wheelCancel: () => call<void>('wheel_cancel'),

@@ -52,6 +52,9 @@ pub mod clipboard {
 }
 
 pub mod shell {
+    pub fn install_libreoffice() -> Result<(), String> {
+        Err("LibreOffice installation is only available on Windows".into())
+    }
     use std::path::{Path, PathBuf};
     pub fn reveal(path: &Path) -> Result<(), String> {
         let dir = crate::fileactions::terminal_dir(path);

@@ -19,7 +19,7 @@ export const mountRedact: Mount = async ({ paths, info, body, changed }) => {
   stage.svg.append(layer);
 
   function paintRegions(): void {
-    layer.replaceChildren(...regions.map((r) => svgEl('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: 'rgba(255,106,19,.18)', stroke: '#ff6a13', 'stroke-width': Math.max(2, W / 400), 'stroke-dasharray': `${W / 120} ${W / 200}` })));
+    layer.replaceChildren(...regions.map((r) => svgEl('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: 'rgba(242,92,5,.18)', stroke: '#f25c05', 'stroke-width': Math.max(2, W / 400), 'stroke-dasharray': `${W / 120} ${W / 200}` })));
     list.replaceChildren(...regions.map((r, i) => h('div', { class: 'li' }, h('span', { class: 'nm' }, `Area ${i + 1} · ${Math.round(r.w)}×${Math.round(r.h)}`),
       h('button', { class: 'btn ghost icon-only', 'aria-label': `Remove area ${i + 1}`, onclick: () => { regions.splice(i, 1); upd(); } }, icon('close', 14)))));
   }
@@ -27,7 +27,7 @@ export const mountRedact: Mount = async ({ paths, info, body, changed }) => {
   const params = () => ({ regions: regions.map((r) => ({ x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) })), style, color: color.get(), blur_radius: radius.get() });
 
   let start: { x: number; y: number } | null = null; let live: SVGRectElement | null = null;
-  stage.svg.addEventListener('pointerdown', (e) => { e.preventDefault(); stage.svg.setPointerCapture(e.pointerId); start = stage.point(e); live = svgEl('rect', { fill: 'rgba(255,106,19,.25)', stroke: '#ff6a13', 'stroke-width': Math.max(2, W / 400) }); layer.append(live); });
+  stage.svg.addEventListener('pointerdown', (e) => { e.preventDefault(); stage.svg.setPointerCapture(e.pointerId); start = stage.point(e); live = svgEl('rect', { fill: 'rgba(242,92,5,.25)', stroke: '#f25c05', 'stroke-width': Math.max(2, W / 400) }); layer.append(live); });
   stage.svg.addEventListener('pointermove', (e) => {
     if (!start || !live) return;
     const p = stage.point(e);

@@ -37,6 +37,18 @@ pub fn open_terminal(path: &Path) -> Result<(), String> {
     proc::spawn_in_dir(&program, &args, &dir, new_console)
 }
 
+/// Install LibreOffice with winget in a visible PowerShell window (the user sees progress and any prompt).
+/// Without winget, the download page is opened instead.
+pub fn install_libreoffice() -> Result<(), String> {
+    let script = "if (Get-Command winget -ErrorAction SilentlyContinue) { \
+        winget install --id TheDocumentFoundation.LibreOffice -e --accept-package-agreements --accept-source-agreements; \
+        Write-Host ''; Write-Host 'Finished. Go back to Orange and click Re-check.' } \
+        else { Start-Process 'https://www.libreoffice.org/download/download-libreoffice/'; \
+        Write-Host 'winget was not found, so the LibreOffice download page was opened. Install it, then click Re-check in Orange.' }";
+    let args = vec!["-NoExit".to_string(), "-NoProfile".to_string(), "-Command".to_string(), script.to_string()];
+    proc::spawn_in_dir("powershell.exe", &args, &std::env::temp_dir(), true)
+}
+
 // ---------------------------------------------------------------- Share sheet
 
 /// Minimal read-only WinRT list so we can hand `DataPackage::SetStorageItems` an `IIterable`.

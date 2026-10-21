@@ -25,3 +25,5 @@ kbd { font:600 12px/1 "Cascadia Mono",Consolas,monospace; background:var(--bg2);
 .banner { display:flex; gap:12px; align-items:center; background:var(--ink); color:var(--paper); border-radius:var(--radius); padding:14px 18px; }
 .banner .btn { margin-left:auto; }
 .legal { color:var(--muted); font-size:12px; text-align:center; margin-top:8px; }
+
+.row-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }

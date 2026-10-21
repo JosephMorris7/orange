@@ -41,7 +41,8 @@
     "shortDescription": "Drag, tap, drop file converter",
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerHooks": "windows/hooks.nsh"
       }
     }
   }

@@ -158,8 +158,9 @@ pub fn open_tool_window(app: &AppHandle, tool_id: &str, title: &str, big: bool, 
     let n = st.tool_windows.fetch_add(1, Ordering::SeqCst) + 1;
     let json = serde_json::to_string(paths).map_err(|e| e.to_string())?;
     let url = format!("tool.html?tool={}&paths={}", urlencoding::encode(tool_id), urlencoding::encode(&json));
+    log::info!(target: "tool", "open {tool_id} with {} file(s)", paths.len());
     let (w, h) = if big { (1040.0, 720.0) } else { (560.0, 640.0) };
-    let win = WebviewWindowBuilder::new(app, format!("tool-{n}"), WebviewUrl::App("wheel.html".into()))
+    let win = WebviewWindowBuilder::new(app, format!("tool-{n}"), WebviewUrl::App(url.as_str().into()))
         .title(format!("{title} — Orange"))
         .inner_size(w, h)
         .min_inner_size(480.0, 420.0)

@@ -18,7 +18,27 @@ pub struct Captured {
 pub fn command(program: &Path) -> Command {
     let mut c = Command::new(program);
     hide_window(&mut c);
+    point_imagemagick_at_itself(&mut c, program);
     c
+}
+
+/// A copy of ImageMagick shipped inside Orange must load its coders and config files from its own folder,
+/// not from registry entries that only exist on the PC where it was installed.
+fn point_imagemagick_at_itself(cmd: &mut Command, program: &Path) {
+    let is_magick = program.file_stem().map(|s| s.eq_ignore_ascii_case("magick")).unwrap_or(false);
+    let Some(dir) = program.parent() else { return };
+    if !is_magick || !dir.join("modules").is_dir() {
+        return;
+    }
+    cmd.env("MAGICK_HOME", dir).env("MAGICK_CONFIGURE_PATH", dir);
+    let coders = dir.join("modules").join("coders");
+    if coders.is_dir() {
+        cmd.env("MAGICK_CODER_MODULE_PATH", coders);
+    }
+    let filters = dir.join("modules").join("filters");
+    if filters.is_dir() {
+        cmd.env("MAGICK_FILTER_MODULE_PATH", filters);
+    }
 }
 
 #[cfg(windows)]
