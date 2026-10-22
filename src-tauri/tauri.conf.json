@@ -37,7 +37,8 @@
     "resources": [
       "resources/bin/**/*"
     ],
-    "publisher": "Orange",
+    "publisher": "Joseph Morris",
+    "copyright": "Copyright (c) 2026 Joseph Morris. MIT        licence.",
     "shortDescription": "Drag, tap, drop file converter",
     "windows": {
       "nsis": {

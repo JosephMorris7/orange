@@ -6,7 +6,7 @@ members = ["crates/orange-core", "crates/orange-convert", "crates/orange-tools",
 version = "0.1.2"
 edition = "2021"
 license = "MIT"
-authors = ["Orange contributors"]
+authors = ["Joseph Morris <joseph931508@gmail.com>"]
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
