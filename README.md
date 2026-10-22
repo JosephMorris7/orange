@@ -115,7 +115,6 @@ The helper programs Orange runs keep their own licences: ffmpeg (LGPL or GPL, de
 - **Trademarks.** All product names, logos and brands mentioned here (including Windows, ffmpeg, ImageMagick, pandoc, LibreOffice and others) belong to their respective owners and are used only to say what Orange works with.
 - **Third-party software.** Orange runs separate programs and libraries that keep their own licences (see above). They are not part of Orange's own MIT-licensed code. If you redistribute an installer, you are responsible for following their terms.
 - **No warranty.** Orange is provided "as is", as the MIT licence says, with no guarantee that it will work or be fit for any purpose. Back up important files and check the results of any conversion or redaction before relying on them.
-- **Built with AI assistance.** I developed Orange with the help of an AI assistant (Claude), and I reviewed and tested the result on my own PC.
 - **Corrections and takedowns.** If you believe something in this repository infringes your rights, please email me and I will look at it promptly and fix or remove it.
 
 ## Author
