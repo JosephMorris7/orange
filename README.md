@@ -12,10 +12,14 @@
 <p align="center">
   <a href="https://github.com/JosephMorris7/orange/releases/latest/download/Orange-setup.exe"><b>Download for Windows</b></a>
   &nbsp;·&nbsp;
+  <a href="https://josephmorris7.github.io/orange/">Website</a>
+  &nbsp;·&nbsp;
   <a href="https://github.com/JosephMorris7/orange/releases/latest">All releases</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/JosephMorris7/orange/issues">Report a problem</a>
 </p>
+
+> **A personal learning project.** Orange is a non-commercial, open-source project I built to practise Rust, TypeScript and Windows programming. It is free, has no ads, no accounts and no payments, and it is not a product or a business.
 
 ---
 
@@ -103,7 +107,16 @@ Copyright (c) 2026 **Joseph Morris**. Orange is released under the [MIT Licence]
 
 The helper programs Orange runs keep their own licences: ffmpeg (LGPL or GPL, depending on the build), ImageMagick, pandoc (GPL), qpdf (Apache-2.0), poppler (GPL), 7-Zip (LGPL), ExifTool (Perl or GPL) and LibreOffice (MPL). Check them before you redistribute an installer.
 
-Orange is an independent project. It borrows the idea of a drag-and-tap radial menu, which exists in other apps on other platforms, and is not affiliated with or endorsed by their makers. Product names and logos belong to their owners.
+## Disclaimer
+
+- **Independent and non-commercial.** Orange is a personal project made for learning. It is not sold, and it is not affiliated with, sponsored by or endorsed by any company or by the makers of any similar app.
+- **Original work.** The code, the logo and the website were written or drawn for this project. No code, artwork, icons, text or other assets were copied from any other app. The only idea it shares with other apps is the general one of a drag-and-tap radial menu, which exists on several platforms and is not owned by anyone here.
+- **Name.** "Orange" is a working name chosen for a hobby project, with no claim to any trademark. Other companies and products may use the same or a similar name, and I do not claim any connection to them. If you hold rights to the name and would like it changed, please contact me (details below) and I will rename the project.
+- **Trademarks.** All product names, logos and brands mentioned here (including Windows, ffmpeg, ImageMagick, pandoc, LibreOffice and others) belong to their respective owners and are used only to say what Orange works with.
+- **Third-party software.** Orange runs separate programs and libraries that keep their own licences (see above). They are not part of Orange's own MIT-licensed code. If you redistribute an installer, you are responsible for following their terms.
+- **No warranty.** Orange is provided "as is", as the MIT licence says, with no guarantee that it will work or be fit for any purpose. Back up important files and check the results of any conversion or redaction before relying on them.
+- **Built with AI assistance.** I developed Orange with the help of an AI assistant (Claude), and I reviewed and tested the result on my own PC.
+- **Corrections and takedowns.** If you believe something in this repository infringes your rights, please email me and I will look at it promptly and fix or remove it.
 
 ## Author
 
