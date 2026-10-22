@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="mark.svg">
+<title>Orange for Windows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a quiet page with one moving object. The wheel is the only thing that performs; everything else is type and
+   hairlines on a lot of air. Light by default, dark follows the viewer. Orange is used only for the logo, the active
+   wedge, the last line of the headline and the download buttons. */
+:root {
+  --bg:#faf9f7; --surface:#f1efeb; --ink:#16120f; --muted:#6c645c; --faint:#a39b92; --line:#e7e3dd; --line2:#d6d1c9;
+  --accent:#f25c05; --accent-ink:#ffffff; --accent-soft:#fde9dc; --wedge:#ffffff; --wedge-line:#e7e3dd;
+  --display:"Bricolage Grotesque","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --body:"Hanken Grotesk","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;
+  --shadow:0 1px 2px rgba(22,18,15,.05), 0 12px 40px -12px rgba(22,18,15,.18);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#0f0d0b; --surface:#181512; --ink:#f3eee8; --muted:#a39a90; --faint:#6e665d; --line:#26211c; --line2:#38312a;
+  --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 50px -14px rgba(0,0,0,.7); color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#0f0d0b; --surface:#181512; --ink:#f3eee8; --muted:#a39a90; --faint:#6e665d; --line:#26211c; --line2:#38312a;
+  --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 50px -14px rgba(0,0,0,.7); color-scheme:dark; }
+
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.65 var(--body); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+body::before { content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:60; background:var(--bg); }
+h1,h2,h3 { font-family:var(--display); margin:0; text-wrap:balance; font-weight:600; letter-spacing:-.03em; }
+p { margin:0; }
+a { color:inherit; text-underline-offset:4px; text-decoration-color:var(--line2); }
+a:hover { text-decoration-color:var(--accent); }
+:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:6px; }
+.wrap { max-width:1080px; margin-inline:auto; padding-left:max(20px,env(safe-area-inset-left,0px)); padding-right:max(20px,env(safe-area-inset-right,0px)); }
+.ico { width:1em; height:1em; display:inline-block; vertical-align:-.14em; }
+.mono { font-family:var(--mono); font-size:.86em; }
+code { font-family:var(--mono); font-size:.86em; background:var(--surface); padding:.1em .4em; border-radius:5px; }
+
+/* buttons */
+.btn { display:inline-flex; align-items:center; gap:10px; padding:13px 22px; border-radius:999px; border:1px solid var(--line2); background:transparent; color:var(--ink); font:500 15.5px/1 var(--body); text-decoration:none; transition:border-color .2s, background .2s, transform .2s; }
+.btn:hover { border-color:var(--ink); }
+.btn.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.primary:hover { transform:translateY(-1px); box-shadow:0 10px 28px -10px var(--accent); }
+.btn .ico { transition:transform .25s; }
+.btn.primary:hover .ico { transform:translateY(2px); }
+
+/* nav */
+.top { position:sticky; top:env(safe-area-inset-top,0px); z-index:50; background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid transparent; transition:border-color .3s; }
+.top.scrolled { border-bottom-color:var(--line); }
+.nav { display:flex; align-items:center; justify-content:space-between; height:68px; }
+.brand { display:flex; align-items:center; gap:10px; font:600 19px/1 var(--display); letter-spacing:-.02em; text-decoration:none; }
+.brand svg { width:30px; height:30px; color:var(--accent); }
+.nav .btn { padding:10px 18px; font-size:14.5px; }
+.nav-r { display:flex; align-items:center; gap:10px; }
+.theme { width:40px; height:40px; border-radius:50%; border:1px solid var(--line2); background:transparent; color:var(--ink); display:grid; place-items:center; cursor:pointer; transition:border-color .2s, transform .3s; }
+.theme:hover { border-color:var(--ink); transform:rotate(180deg); }
+.theme svg { width:18px; height:18px; }
+
+/* hero */
+.hero { padding-block:clamp(40px,7vw,96px) clamp(56px,8vw,110px); }
+.hero-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.95fr); gap:clamp(32px,6vw,88px); align-items:center; }
+.h1 { font-size:clamp(42px,6.2vw,80px); line-height:1.02; letter-spacing:-.045em; font-weight:600; }
+.h1 .ln { display:block; transition:opacity .6s ease, transform .6s ease; }
+.js .h1 .ln { opacity:.18; transform:translateY(6px); }
+.js .h1 .ln.on { opacity:1; transform:none; }
+.h1 .ln:last-child { color:var(--accent); }
+.lede { margin-top:28px; max-width:30em; color:var(--muted); font-size:clamp(17px,1.5vw,19px); }
+.cta { margin-top:34px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.facts { margin-top:22px; color:var(--faint); font-size:14px; display:flex; flex-wrap:wrap; gap:6px 18px; }
+.facts span + span::before { content:""; display:inline-block; width:3px; height:3px; border-radius:50%; background:var(--faint); margin-right:18px; vertical-align:middle; }
+
+/* the stage */
+.stage { position:relative; display:grid; justify-items:center; gap:22px; }
+.keys { display:inline-flex; padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--surface); }
+.keys button { font:500 13.5px/1 var(--body); color:var(--muted); background:transparent; border:0; border-radius:999px; padding:9px 16px; cursor:pointer; display:flex; gap:8px; align-items:baseline; transition:background .2s, color .2s, transform .15s; }
+.keys button small { font-size:12px; color:var(--faint); }
+.keys button b { font:500 12.5px/1 var(--mono); }
+.keys button[aria-pressed="true"] { background:var(--bg); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.keys button[aria-pressed="true"] small { color:var(--muted); }
+.keys button.tap { transform:scale(.93); background:var(--accent-soft); color:var(--accent); }
+.wheel-box { width:min(100%,500px); aspect-ratio:1; transition:transform .7s cubic-bezier(.2,.8,.2,1), opacity .5s; }
+.wheel-box.closed { transform:scale(.84); opacity:0; }
+.wheel-box svg { width:100%; height:100%; display:block; overflow:visible; cursor:pointer; }
+.w-disc { fill:var(--surface); stroke:var(--line); stroke-width:1; filter:drop-shadow(0 20px 40px rgba(0,0,0,.08)); }
+.w-seg { fill:var(--wedge); stroke:var(--wedge-line); stroke-width:1; transition:fill .18s; }
+.w-seg.hot { fill:var(--accent); stroke:var(--accent); }
+.w-lbl { font:500 15.5px var(--body); letter-spacing:.09em; fill:var(--muted); text-anchor:middle; pointer-events:none; transition:fill .18s; }
+.w-lbl.hot { fill:var(--accent-ink); font-weight:600; }
+.w-hub { fill:var(--bg); stroke:var(--line); }
+.w-dot { fill:var(--accent); }
+.w-hub-t { font:600 23px var(--display); fill:var(--ink); text-anchor:middle; letter-spacing:-.02em; }
+.w-hub-s { font:400 14px var(--body); fill:var(--muted); text-anchor:middle; }
+.result { min-height:3em; text-align:center; color:var(--muted); font-size:14.5px; max-width:26em; }
+.result b { color:var(--ink); font-weight:600; }
+.ghost { position:absolute; left:0; top:0; z-index:5; display:flex; align-items:center; gap:8px; padding:9px 14px; background:var(--bg); color:var(--ink); border:1px solid var(--line2); border-radius:10px; box-shadow:var(--shadow); font:500 13.5px/1 var(--body); opacity:0; pointer-events:none; transition:transform 1s cubic-bezier(.6,.05,.2,1), opacity .35s; }
+.ghost svg { width:16px; height:16px; color:var(--accent); }
+.ghost.show { opacity:1; }
+.ghost.gone { opacity:0; transition:opacity .3s; }
+
+/* sections */
+.s { padding-block:clamp(64px,9vw,120px); border-top:1px solid var(--line); }
+.eyebrow { font:500 13px/1 var(--mono); color:var(--faint); letter-spacing:.06em; text-transform:uppercase; }
+.s h2 { margin-top:18px; font-size:clamp(30px,4vw,48px); line-height:1.08; max-width:16em; }
+.sub { margin-top:18px; color:var(--muted); max-width:34em; }
+
+.keyrow { margin-top:56px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; border-top:1px solid var(--line); }
+.kcol { padding:30px 28px 8px 0; }
+.kcol + .kcol { padding-left:28px; border-left:1px solid var(--line); }
+.kcol .k { font:500 12.5px/1 var(--mono); color:var(--muted); display:inline-block; padding:6px 9px; border:1px solid var(--line2); border-radius:7px; }
+.kcol .n { display:block; margin-top:26px; font:600 clamp(52px,7vw,92px)/1 var(--display); letter-spacing:-.05em; font-variant-numeric:tabular-nums; }
+.kcol h3 { margin-top:6px; font-size:21px; letter-spacing:-.02em; }
+.kcol p { margin-top:10px; color:var(--muted); font-size:16px; max-width:22em; }
+.fine { margin-top:34px; color:var(--faint); font-size:14px; max-width:46em; }
+
+.trio { margin-top:56px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:40px; }
+.trio h3 { font-size:19px; letter-spacing:-.015em; }
+.trio p { margin-top:10px; color:var(--muted); font-size:16px; }
+.trio .ic { width:26px; height:26px; color:var(--accent); margin-bottom:18px; display:block; }
+
+.fmts { margin-top:44px; display:flex; flex-wrap:wrap; gap:10px 8px; }
+.fmts span { font:500 13.5px/1 var(--mono); color:var(--muted); padding:8px 12px; border:1px solid var(--line); border-radius:8px; transition:color .2s, border-color .2s, background .2s; }
+.fmts span:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+.fmts .more { border-style:dashed; color:var(--faint); }
+
+.helpers { margin-top:44px; border-top:1px solid var(--line); }
+.helpers li { list-style:none; display:grid; grid-template-columns:150px 1fr auto; gap:16px; padding:15px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+.helpers { padding:0; margin-bottom:0; }
+.helpers b { font-weight:600; }
+.helpers span { color:var(--muted); font-size:15.5px; }
+.helpers em { font:500 12.5px var(--mono); font-style:normal; color:var(--faint); }
+
+.get-steps { margin-top:48px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:36px; padding:0; list-style:none; counter-reset:st; }
+.get-steps li { counter-increment:st; border-top:1px solid var(--line2); padding-top:20px; color:var(--muted); font-size:16px; }
+.get-steps li::before { content:counter(st); display:block; font:500 13px var(--mono); color:var(--accent); margin-bottom:12px; }
+.get-steps b { display:block; color:var(--ink); font:600 18px var(--display); letter-spacing:-.015em; margin-bottom:6px; }
+.note { margin-top:44px; padding:20px 22px; border-radius:14px; background:var(--surface); color:var(--muted); font-size:15px; max-width:46em; }
+.note b { color:var(--ink); font-weight:600; }
+.contact { margin-top:56px; padding-top:32px; border-top:1px solid var(--line); }
+.contact h3 { font-size:22px; letter-spacing:-.02em; }
+.contact p { margin-top:8px; color:var(--muted); }
+.clinks { margin-top:22px; display:flex; flex-wrap:wrap; gap:12px; }
+.clinks .btn { padding:12px 18px; }
+.bi { width:18px; height:18px; flex:none; }
+details.src { margin-top:28px; }
+details.src summary { cursor:pointer; color:var(--muted); font-size:15px; }
+details.src summary:hover { color:var(--ink); }
+details.src .in { margin-top:16px; max-width:46em; color:var(--muted); font-size:15px; }
+pre { margin:16px 0 0; padding:18px 20px; background:var(--surface); border-radius:12px; font:400 13px/1.7 var(--mono); overflow-x:auto; color:var(--ink); }
+pre .c { color:var(--faint); }
+.copy { margin-top:12px; font:500 13.5px var(--body); background:transparent; border:1px solid var(--line2); color:var(--ink); border-radius:999px; padding:8px 14px; cursor:pointer; }
+.copy:hover { border-color:var(--ink); }
+
+.sign { padding-block:56px; border-top:1px solid var(--line); }
+.sign-in { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between; }
+.sign p { color:var(--muted); font-size:15px; display:flex; align-items:center; gap:12px; }
+.sign svg { width:22px; height:22px; color:var(--accent); }
+.sign strong { color:var(--ink); font:600 15px var(--display); letter-spacing:-.01em; }
+.sign a { font-size:14.5px; color:var(--muted); }
+footer { padding-block:0 56px; color:var(--faint); font-size:13.5px; }
+footer p { max-width:52em; }
+footer p + p { margin-top:10px; }
+
+@media (max-width:860px) {
+  .hero-grid { grid-template-columns:1fr; }
+  .stage { order:2; }
+  .keyrow, .trio, .get-steps { grid-template-columns:1fr; }
+  .kcol, .kcol + .kcol { padding:26px 0 6px; border-left:0; border-top:1px solid var(--line); }
+  .kcol:first-child { border-top:0; }
+  .helpers li { grid-template-columns:110px 1fr; }
+  .helpers li em { grid-column:2; }
+}
+
+/* problem */
+.cmp { margin-top:52px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(20px,4vw,56px); }
+.cmp h3 { font-size:15px; font-family:var(--mono); font-weight:500; letter-spacing:.04em; text-transform:uppercase; color:var(--faint); }
+.cmp ol { list-style:none; margin:18px 0 0; padding:0; counter-reset:c; border-top:1px solid var(--line); }
+.cmp li { counter-increment:c; display:flex; gap:16px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--line); color:var(--muted); font-size:16.5px; }
+.cmp li::before { content:counter(c); font:500 12.5px var(--mono); color:var(--faint); min-width:1.2em; }
+.cmp .with h3 { color:var(--accent); }
+.cmp .with li { color:var(--ink); font-weight:500; }
+.cmp .with li::before { color:var(--accent); }
+.cmp .with li:last-child { border-bottom-color:var(--accent); }
+.cmp .foot { margin-top:16px; color:var(--muted); font-size:15px; }
+
+/* demo */
+.dtools { margin-top:40px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; }
+.seg { display:inline-flex; padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--surface); }
+.seg button { font:500 13.5px/1 var(--body); color:var(--muted); background:transparent; border:0; border-radius:999px; padding:9px 16px; cursor:pointer; transition:background .2s, color .2s; }
+.seg button[aria-pressed="true"] { background:var(--bg); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.replay { font:500 13.5px var(--body); background:transparent; border:1px solid var(--line2); color:var(--ink); border-radius:999px; padding:9px 16px; cursor:pointer; }
+.replay:hover { border-color:var(--ink); }
+.dm { position:relative; margin-top:18px; height:470px; border:1px solid var(--line); border-radius:20px; overflow:hidden; background:radial-gradient(760px 420px at 85% -10%, var(--accent-soft), transparent 70%), radial-gradient(600px 380px at 0% 100%, var(--accent-soft), transparent 70%), var(--surface); }
+.di { position:absolute; width:78px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px 0; border-radius:8px; transition:opacity .25s, background .25s; }
+.di .dn { font:500 12px/1.25 var(--body); color:var(--ink); text-align:center; word-break:break-all; padding:0 4px; border-radius:4px; }
+.df { position:relative; width:40px; height:50px; border-radius:6px 12px 6px 6px; background:var(--bg); border:1px solid var(--line2); display:grid; place-items:end center; padding-bottom:6px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+.df::before { content:""; position:absolute; top:-1px; right:-1px; width:12px; height:12px; background:var(--surface); border-left:1px solid var(--line2); border-bottom:1px solid var(--line2); border-radius:0 11px 0 6px; }
+.df b { font:500 10px var(--mono); color:var(--accent); letter-spacing:.02em; }
+.di.lift { opacity:.35; }
+.di.sel { background:color-mix(in srgb, var(--accent) 14%, transparent); }
+.di.new { animation:pop .55s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes pop { from { opacity:0; transform:scale(.7); } to { opacity:1; transform:none; } }
+.cur { position:absolute; left:0; top:0; z-index:9; width:22px; height:22px; pointer-events:none; transition:transform 1s cubic-bezier(.5,0,.2,1); }
+.cur svg { width:100%; height:100%; fill:var(--ink); stroke:var(--bg); stroke-width:1.2; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); transition:transform .15s; }
+.cur.press svg { transform:scale(.85); }
+.dchip { position:absolute; left:0; top:0; z-index:8; display:flex; flex-direction:column; align-items:center; gap:5px; width:78px; opacity:0; pointer-events:none; transition:transform 1s cubic-bezier(.5,0,.2,1), opacity .25s; }
+.dchip > span:last-child { font:500 12px/1.2 var(--body); background:var(--ink); color:var(--bg); padding:3px 7px; border-radius:5px; white-space:nowrap; }
+.dchip .df { box-shadow:0 10px 24px -6px rgba(0,0,0,.35); transform:rotate(-4deg); }
+.dchip.show { opacity:1; }
+.dwheel { position:absolute; z-index:7; width:min(340px,76%); aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); opacity:0; pointer-events:none; transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+.dwheel.open { transform:translate(-50%,-50%) scale(1); opacity:1; }
+.dwheel svg { width:100%; height:100%; display:block; overflow:visible; }
+.dwheel .w-lbl { font-size:23px; }
+.dwheel .w-hub-t { font-size:30px; }
+.dwheel .w-hub-s { font-size:19px; }
+.dkeys { position:absolute; z-index:6; left:50%; bottom:58px; transform:translateX(-50%); display:flex; gap:8px; }
+.dkeys span { min-width:58px; text-align:center; padding:9px 12px; border-radius:9px; background:var(--bg); color:var(--faint); border:1px solid var(--line2); border-bottom-width:3px; font:500 12.5px var(--mono); transition:background .2s, color .2s, border-color .2s, transform .15s; }
+.dkeys span.on { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); transform:translateY(2px); border-bottom-width:1px; }
+.dtoast { position:absolute; z-index:10; right:18px; top:18px; padding:11px 16px; border-radius:10px; background:var(--ink); color:var(--bg); font:500 14px var(--body); opacity:0; transform:translateY(-8px); transition:opacity .3s, transform .3s; }
+.dtoast.on { opacity:1; transform:none; }
+.tb { position:absolute; left:0; right:0; bottom:0; z-index:5; height:44px; display:flex; align-items:center; justify-content:center; border-top:1px solid var(--line); background:color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.tb-mid { display:flex; align-items:center; gap:12px; }
+.tb-mid i { width:20px; height:20px; border-radius:6px; background:var(--line2); }
+.winlogo { width:18px; height:18px; fill:var(--accent); }
+.srch { font:400 12.5px var(--body); color:var(--faint); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:5px 40px 5px 12px; }
+.tb-end { position:absolute; right:14px; display:flex; align-items:center; gap:12px; }
+.tray { width:20px; height:20px; color:var(--accent); fill:var(--accent); }
+.tray.on { animation:pulse 1s ease-in-out 2; }
+@keyframes pulse { 50% { transform:scale(1.45); } }
+.clk { font:500 12px var(--mono); color:var(--muted); }
+.dsteps { margin-top:22px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.dsteps div { border-top:2px solid var(--line); padding-top:12px; color:var(--faint); font-size:15px; transition:color .3s, border-color .3s; }
+.dsteps div b { font:500 12.5px var(--mono); margin-right:8px; }
+.dsteps div.on { color:var(--ink); border-top-color:var(--accent); }
+.dcap { margin-top:18px; color:var(--muted); font-size:15px; max-width:46em; min-height:3em; }
+.dcap small { display:block; margin-top:4px; color:var(--faint); font-size:13.5px; }
+
+.flist { margin:56px 0 0; padding:0; list-style:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 clamp(24px,5vw,72px); border-top:1px solid var(--line); }
+.flist li { padding:20px 0; border-bottom:1px solid var(--line); }
+.flist b { display:block; font:600 18px var(--display); letter-spacing:-.015em; }
+.flist span { display:block; margin-top:4px; color:var(--muted); font-size:15.5px; }
+@media (max-width:860px) { .cmp, .flist { grid-template-columns:1fr; } .dm { height:480px; } .srch { display:none; } .dsteps { gap:8px; } .dsteps div { font-size:13.5px; } .dtoast { right:12px; top:12px; } .dkeys span { min-width:50px; padding:8px 8px; } }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } html { scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="mk" viewBox="0 0 1024 1024"><path fill="currentColor" fill-rule="evenodd" d="M445.0 967.0C353.0 952.8 270.1 913.4 201.6 851.0C187.4 838.1 183.8 833.3 181.4 824.1C178.6 813.0 182.2 799.9 190.2 792.4C199.1 784.0 370.7 647.6 374.5 645.9C386.8 640.4 397.1 642.6 414.3 654.1C431.5 665.7 445.4 672.0 469.9 679.5C477.0 681.7 483.3 686.0 487.6 691.8C494.4 701.1 494.1 693.9 493.8 825.1L493.5 943.5L490.7 949.1C485.6 959.5 474.5 967.3 463.0 968.4C459.8 968.7 452.3 968.1 445.0 967.0ZM557.3 968.0C547.6 966.0 537.8 958.4 533.3 949.1L530.5 943.5L530.2 825.1C529.9 693.9 529.6 701.1 536.4 691.8C541.0 685.7 547.1 681.6 555.6 679.0C579.3 671.7 592.1 665.8 609.5 654.2C627.0 642.5 637.2 640.4 649.5 645.9C653.3 647.6 825.0 784.0 833.8 792.4C841.8 799.9 845.4 813.0 842.6 824.1C839.8 835.0 835.7 839.8 811.0 861.1C746.8 916.7 663.8 954.4 578.5 966.9C563.3 969.2 563.4 969.2 557.3 968.0ZM141.7 767.9C127.1 764.5 119.7 755.2 100.6 717.0C62.8 641.0 45.8 551.5 54.0 471.0C55.8 453.9 62.4 443.2 74.7 437.8C85.2 433.2 81.8 432.6 198.5 458.9C317.5 485.8 318.5 486.0 323.8 489.4C334.4 496.1 338.5 504.7 340.0 523.0C341.7 544.6 345.5 560.4 353.7 580.0C360.3 595.7 358.0 609.8 347.2 620.2C343.4 623.8 182.8 751.8 168.8 762.4C161.7 767.7 150.6 770.0 141.7 767.9ZM864.7 767.1C861.6 766.1 857.3 763.9 855.2 762.4C841.3 751.9 680.6 623.8 676.8 620.2C666.0 609.9 663.7 595.7 670.3 580.0C678.3 560.8 682.3 544.2 684.0 523.0C685.5 504.7 689.6 496.1 700.2 489.4C705.5 486.0 706.5 485.8 825.5 458.9C942.2 432.6 938.8 433.2 949.3 437.8C961.4 443.2 968.2 453.9 969.9 470.5C977.2 542.0 964.4 623.2 934.8 692.5C923.2 719.5 906.1 751.1 898.7 758.7C890.5 767.3 876.1 770.9 864.7 767.1ZM493.0 587.9C471.0 582.2 452.5 567.4 442.6 547.8C416.1 495.0 453.3 434.0 512.0 434.0C575.2 434.0 611.9 504.2 576.2 556.8C558.7 582.5 523.2 595.8 493.0 587.9ZM212.5 425.5C152.0 411.5 100.6 399.3 98.3 398.5C92.5 396.3 85.0 389.3 81.5 382.8C78.7 377.9 78.5 376.7 78.5 367.5C78.5 357.6 78.6 357.3 84.3 343.0C118.2 258.6 175.7 185.9 249.3 134.7C267.7 121.8 270.7 120.5 281.5 120.5C292.6 120.5 299.5 123.4 306.2 130.9C311.6 136.9 410.5 340.0 412.1 348.4C414.7 362.1 410.9 370.3 394.4 386.2C380.2 400.0 370.0 412.9 361.6 427.8C352.3 444.2 344.1 450.1 330.0 450.6C323.2 450.9 312.3 448.6 212.5 425.5ZM685.3 449.6C675.8 446.6 669.7 440.7 662.0 427.2C653.9 412.7 645.9 402.7 630.7 387.6C612.8 369.8 609.2 362.3 611.9 348.4C613.5 340.0 712.4 136.9 717.8 130.9C724.5 123.4 731.4 120.5 742.5 120.5C753.3 120.5 756.3 121.8 774.7 134.7C848.2 185.9 905.7 258.4 939.7 343.0C945.4 357.3 945.5 357.6 945.5 367.5C945.5 378.9 944.0 382.8 936.8 390.6C929.8 398.2 929.5 398.3 811.2 425.4C697.3 451.6 693.9 452.2 685.3 449.6ZM466.2 342.9C463.3 342.4 458.8 340.9 456.1 339.6C445.8 334.3 446.5 335.6 392.6 222.9L342.7 118.5L342.2 110.5C341.3 93.3 349.9 81.7 368.2 75.4C434.4 52.7 513.3 46.6 587.0 58.5C614.8 63.1 656.1 74.1 665.7 79.6C676.4 85.8 682.5 97.4 681.8 110.5L681.3 118.5L631.4 222.9C577.6 335.5 578.2 334.3 567.9 339.5C560.3 343.4 553.9 343.9 540.3 341.9C520.9 339.0 496.2 339.5 473.5 343.4C472.4 343.6 469.1 343.3 466.2 342.9Z"/></symbol>
+  <symbol id="fileico" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3.5 1.8h6l3 3v9.4h-9z M9.5 1.8v3h3"/></symbol>
+  <symbol id="dl" viewBox="0 0 20 20"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 3v10 M5.5 9 10 13.5 14.5 9 M4 17h12"/></symbol>
+  <symbol id="i-off" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0 M5.6 5.6l12.8 12.8 M8.5 10.5h7"/></symbol>
+  <symbol id="i-safe" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M8 3h8l4 4v14H8z M16 3v4h4 M4 8v13h12"/></symbol>
+  <symbol id="i-red" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16 M4 12h9 M4 18h16"/><rect x="14" y="9.5" width="6" height="5" rx="1" fill="currentColor"/></symbol>
+  <symbol id="i-gh" viewBox="0 0 16 16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 20 20"><rect x="2.5" y="4.5" width="15" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 6l7 5 7-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-in" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M4 2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM5.3 8.2v6.3h2.1V8.2zM6.35 5.1a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM9.2 8.2v6.3h2.1v-3.3c0-.9.4-1.4 1.1-1.4.7 0 1 .5 1 1.4v3.3h2.1v-3.7c0-1.9-1-2.8-2.4-2.8-.9 0-1.5.4-1.8.9v-.7z"/></symbol>
+</defs></svg>
+
+<header class="top" id="top">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Orange home"><svg aria-hidden="true"><use href="#mk"/></svg>Orange</a>
+    <div class="nav-r">
+      <button type="button" class="theme" id="themeBtn" aria-label="Switch between light and dark"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor"/></svg></button>
+      <a class="btn primary" href="https://github.com/JosephMorris7/orange/releases/latest/download/Orange-setup.exe" rel="noopener">Download</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 class="h1"><span class="ln">Drag a file.</span><span class="ln">Tap a key.</span><span class="ln">Drop it on the wheel.</span></h1>
+      <p class="lede">Orange lives in your Windows tray. While you drag a file, tap a key and a wheel opens under your cursor. Convert it, work on it or send it on, without opening a window.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/JosephMorris7/orange/releases/latest/download/Orange-setup.exe" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#dl"/></svg>Download for Windows</a>
+        <a class="btn" href="#keys">How it works</a>
+      </div>
+      <div class="facts"><span>Windows 10 and 11</span><span>Works offline</span><span>Free and open source</span></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="keys" role="group" aria-label="Choose which wheel to preview">
+        <button type="button" data-mode="convert" aria-pressed="true"><b>Shift</b><small>Convert</small></button>
+        <button type="button" data-mode="tools" aria-pressed="false"><b>Ctrl</b><small>Tools</small></button>
+        <button type="button" data-mode="actions" aria-pressed="false"><b>Alt</b><small>Actions</small></button>
+      </div>
+      <div class="wheel-box" id="wheelBox"></div>
+      <div class="ghost" id="ghost" aria-hidden="true"><svg><use href="#fileico"/></svg>sunset.png</div>
+      <p class="result" id="result" aria-live="polite">Hover a wedge and click to drop. This is a demo, nothing is converted on this page.</p>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="problem">
+  <div class="wrap">
+    <span class="eyebrow">The problem</span>
+    <h2>Changing a file should not be a project.</h2>
+    <p class="sub">Turning a photo into a PDF or shrinking a video usually means leaving what you are doing, finding a converter, and often uploading your file to a website you know nothing about.</p>
+    <div class="cmp">
+      <div class="without"><h3>Without Orange</h3>
+        <ol><li>Find the file in Explorer.</li><li>Open a converter app or website.</li><li>Upload or import the file.</li><li>Pick a format and settings.</li><li>Wait, then download or export.</li><li>Find the new file and move it where you want it.</li></ol>
+      </div>
+      <div class="with"><h3>With Orange</h3>
+        <ol><li>Drag the file.</li><li>Tap Shift, Ctrl or Alt.</li><li>Drop it on what you want.</li></ol>
+        <p class="foot">The result is saved next to the original. Nothing leaves your PC.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="demo">
+  <div class="wrap">
+    <span class="eyebrow">See it work</span>
+    <h2>On your desktop, in three keys.</h2>
+    <div class="dtools">
+      <div class="seg" role="group" aria-label="Choose a demo">
+        <button type="button" data-d="convert" aria-pressed="true">Shift: convert</button>
+        <button type="button" data-d="tools" aria-pressed="false">Ctrl: tools</button>
+        <button type="button" data-d="actions" aria-pressed="false">Alt: actions</button>
+      </div>
+      <button type="button" class="replay" id="dReplay">Replay</button>
+    </div>
+    <div class="dm" id="dm" aria-label="Animated demo of dragging a file on the Windows desktop and dropping it on the wheel">
+      <div class="di" id="dHeic" style="left:22px;top:20px"><span class="df"><b>HEIC</b></span><span class="dn">holiday.heic</span></div>
+      <div class="di" id="dMp4" style="left:22px;top:112px"><span class="df"><b>MP4</b></span><span class="dn">trip.mp4</span></div>
+      <div class="di" id="dPdf" style="left:22px;top:204px"><span class="df"><b>PDF</b></span><span class="dn">report.pdf</span></div>
+      <div class="dwheel" id="dWheel"></div>
+      <div class="dchip" id="dChip"><span class="df"><b id="dChipExt"></b></span><span id="dChipName"></span></div>
+      <div class="cur" id="dCur"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 2l13 7-5.5 1.6L8 16z"/></svg></div>
+      <div class="dkeys" id="dKeys" aria-hidden="true"><span>Shift</span><span>Ctrl</span><span>Alt</span></div>
+      <div class="dtoast" id="dToast"></div>
+      <div class="tb" aria-hidden="true">
+        <div class="tb-mid"><svg class="winlogo" viewBox="0 0 16 16"><path d="M1 2.4l6-.8v5.7H1zM8 1.5l7-1v6.8H8zM1 8.2h6v5.7l-6-.8zM8 8.2h7v6.8l-7-1z"/></svg><span class="srch">Search</span><i></i><i></i><i></i></div>
+        <div class="tb-end"><svg class="tray" id="dTray" viewBox="0 0 1024 1024"><use href="#mk"/></svg><span class="clk">9:41</span></div>
+      </div>
+    </div>
+    <div class="dsteps" id="dSteps"><div><b>1</b>Drag the file</div><div><b>2</b><span id="dStep2">Tap Shift</span></div><div><b>3</b>Drop it on the wheel</div></div>
+    <p class="dcap" id="dCap" aria-live="polite"></p>
+  </div>
+</section>
+
+<section class="s" id="keys">
+  <div class="wrap">
+    <span class="eyebrow">Features</span>
+    <h2>One gesture. Three wheels.</h2>
+    <div class="keyrow">
+      <div class="kcol"><span class="k">Shift</span><span class="n" data-count="248">248</span><h3>Conversions</h3><p>Images, video, audio, PDFs, documents, slides, spreadsheets, subtitles and archives. The wheel lists what your file can become, most useful first.</p></div>
+      <div class="kcol"><span class="k">Ctrl</span><span class="n" data-count="26">26</span><h3>Tools</h3><p>Crop, redact, compress, trim, merge, annotate and more. When a tool needs a decision, a small dialog opens with a live preview.</p></div>
+      <div class="kcol"><span class="k">Alt</span><span class="n" data-count="6">6</span><h3>Actions</h3><p>Share, float to a shelf, copy, move, copy the path, or open a terminal in that folder.</p></div>
+    </div>
+    <ul class="flist">
+      <li><b>Drag several files at once</b><span>With two or more files, the merge, collage and PDF tools appear.</span></li>
+      <li><b>Saves where you choose</b><span>Next to the original, or always in one folder you pick.</span></li>
+      <li><b>Lives in the tray</b><span>Start it with Windows if you like. Settings are one click away.</span></li>
+      <li><b>Tells you when it is done</b><span>A notification, and a Show button on the recent jobs list.</span></li>
+      <li><b>Your keys, your size</b><span>Pick which key opens which wheel, and set the wheel size and theme.</span></li>
+      <li><b>Nothing to install first</b><span>The conversion programs are inside the installer. LibreOffice is offered at setup.</span></li>
+    </ul>
+    <p class="fine">These numbers come from the program itself: run <code>orange counts</code> to see yours. Mac-only formats such as Pages and RTFD are not supported.</p>
+  </div>
+</section>
+
+<section class="s" id="care">
+  <div class="wrap">
+    <span class="eyebrow">Careful by default</span>
+    <h2>Your files stay yours.</h2>
+    <div class="trio">
+      <div><svg class="ic" aria-hidden="true"><use href="#i-off"/></svg><h3>Works offline</h3><p>No account, no uploads. Everything is processed on your PC.</p></div>
+      <div><svg class="ic" aria-hidden="true"><use href="#i-safe"/></svg><h3>Never overwrites</h3><p>Results are saved next to the original, with a number added if the name is taken.</p></div>
+      <div><svg class="ic" aria-hidden="true"><use href="#i-red"/></svg><h3>Real redaction</h3><p>The Redact tool destroys the covered pixels in a new copy and strips its metadata.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="formats">
+  <div class="wrap">
+    <span class="eyebrow">Formats</span>
+    <h2>If it is a common file, Orange can turn it into another.</h2>
+    <div class="fmts" id="fmts" aria-label="Some of the formats Orange handles"></div>
+    <ul class="helpers" aria-label="Programs that do the work">
+      <li><b>ffmpeg</b><span>Video and audio</span><em>included</em></li>
+      <li><b>ImageMagick</b><span>Images and photo tools</span><em>included</em></li>
+      <li><b>pandoc, poppler, qpdf</b><span>Documents and PDFs</span><em>included</em></li>
+      <li><b>7-Zip, ExifTool</b><span>Archives and metadata</span><em>included</em></li>
+      <li><b>LibreOffice</b><span>Word, Excel and PowerPoint files</span><em>offered at setup</em></li>
+    </ul>
+  </div>
+</section>
+
+<section class="s" id="get">
+  <div class="wrap">
+    <span class="eyebrow">Get Orange</span>
+    <h2>Download, install, drag a file.</h2>
+    <p class="sub">One installer for Windows 10 and 11 (64-bit). The conversion programs are inside, so there is nothing else to set up.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/JosephMorris7/orange/releases/latest/download/Orange-setup.exe" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#dl"/></svg>Download for Windows</a>
+      <a class="btn" href="https://github.com/JosephMorris7/orange" rel="noopener">View the source</a>
+    </div>
+    <ol class="get-steps">
+      <li><b>Download</b>The file ends in <code>-setup.exe</code>.</li>
+      <li><b>Open it</b>If Windows says it protected your PC, choose <i>More info</i>, then <i>Run anyway</i>. The installer is not signed yet.</li>
+      <li><b>Drag and tap</b>Drag a file and tap Shift. The tray icon opens Settings.</li>
+    </ol>
+    <div class="contact">
+      <h3>Found a problem?</h3>
+      <p>Tell me on GitHub, write to me, or message me on LinkedIn.</p>
+      <div class="clinks">
+        <a class="btn" href="https://github.com/JosephMorris7/orange/issues" rel="noopener"><svg class="bi" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-gh"/></svg>GitHub</a>
+        <a class="btn" href="mailto:joseph931508@gmail.com"><svg class="bi" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-mail"/></svg>joseph931508@gmail.com</a>
+        <a class="btn" href="https://www.linkedin.com/in/joseph-morris-028271300" rel="noopener"><svg class="bi" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-in"/></svg>LinkedIn</a>
+      </div>
+    </div>
+    <details class="src">
+      <summary>Build it from source</summary>
+      <div class="in">
+        <p>You need Rust (stable), Node 22, the Visual Studio C++ build tools and the WebView2 runtime. It is a Tauri 2 app: Rust for the engine and the Windows layer, TypeScript for the wheel and dialogs.</p>
+<pre id="cmd"><span class="c"># from the project folder, in PowerShell</span>
+.\scripts\fetch-deps.ps1
+npm --prefix ui install
+cargo install tauri-cli --version "^2" --locked
+cd src-tauri
+cargo tauri build <span class="c"># installers land in target\release\bundle</span></pre>
+        <button class="copy" type="button" id="copyBtn">Copy commands</button>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="sign" aria-label="Credits">
+  <div class="wrap sign-in">
+    <p><svg aria-hidden="true"><use href="#mk"/></svg>Designed and built by <strong>Joseph Morris</strong></p>
+    <a href="https://github.com/JosephMorris7" rel="noopener">GitHub</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Orange is an independent open-source project under the MIT licence. It borrows the idea of a drag-and-tap radial menu, which exists in other apps on other platforms, and is not affiliated with or endorsed by their makers. Names and logos belong to their owners.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement, reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.classList.add('js');
+  var TAU = Math.PI * 2, SIZE = 640, C = 320, R_OUT = 290, R_IN = 100, GAP = 8;
+  var MODES = {
+    convert: { title: 'CONVERT', items: ['JPG', 'WEBP', 'PDF', 'TIFF', 'BMP', 'AVIF', 'HEIC'], more: true },
+    tools: { title: 'TOOLS', items: ['COMPRESS', 'CROP', 'EDIT', 'REDACT', 'ANNOTATE', 'ADD BG', 'RESIZE', 'METADATA'] },
+    actions: { title: 'ACTIONS', items: ['SHARE', 'FLOAT', 'COPY', 'MOVE', 'COPY PATH', 'TERMINAL'] }
+  };
+  var mode = 'convert', hover = -1, interacted = false, auto = 0, seqTimers = [], seqActive = false;
+  var box = document.getElementById('wheelBox'), result = document.getElementById('result'), stage = document.getElementById('stage'), ghost = document.getElementById('ghost');
+
+  function pt(r, a) { return [C + r * Math.sin(a), C - r * Math.cos(a)]; }
+  function wedge(a0, a1, ro, ri, gap) {
+    var go = gap / 2 / ro, gi = gap / 2 / ri, big = a1 - a0 > Math.PI ? 1 : 0;
+    function p(r, a) { return [C + r * Math.sin(a), C - r * Math.cos(a)]; }
+    var p0 = p(ro, a0 + go), p1 = p(ro, a1 - go), p2 = p(ri, a1 - gi), p3 = p(ri, a0 + gi);
+    function f(q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); }
+    return 'M' + f(p0) + ' A' + ro + ' ' + ro + ' 0 ' + big + ' 1 ' + f(p1) + ' L' + f(p2) + ' A' + ri + ' ' + ri + ' 0 ' + big + ' 0 ' + f(p3) + 'Z';
+  }
+  function slots() { var m = MODES[mode], s = m.items.slice(); if (m.more) s.push('MORE'); return s; }
+  function draw() {
+    var s = slots(), n = s.length, w = TAU / n, h = '';
+    s.forEach(function (l, i) {
+      var mid = i * w, p = pt((R_IN + R_OUT) / 2 + 8, mid), hot = i === hover;
+      h += '<path class="w-seg' + (hot ? ' hot' : '') + '" d="' + wedge(mid - w / 2, mid + w / 2, R_OUT, R_IN, GAP) + '"/>' +
+        '<text class="w-lbl' + (hot ? ' hot' : '') + '" x="' + p[0].toFixed(1) + '" y="' + (p[1] + 5).toFixed(1) + '">' + l + '</text>';
+    });
+    var t = hover >= 0 ? s[hover] : MODES[mode].title, sub = hover >= 0 ? (hover === n - 1 && MODES[mode].more ? 'more formats' : mode === 'convert' ? 'to ' + s[hover] : '') : 'sunset.png';
+    box.innerHTML = '<svg viewBox="-12 -12 664 664" role="img" aria-label="Interactive demo of the ' + MODES[mode].title.toLowerCase() + ' wheel">' +
+      '<circle class="w-disc" cx="' + C + '" cy="' + C + '" r="' + (R_OUT + 12) + '"/>' + h +
+      '<circle class="w-hub" cx="' + C + '" cy="' + C + '" r="' + (R_IN - 12) + '"/><circle class="w-dot" cx="' + C + '" cy="' + (C - 46) + '" r="4"/>' +
+      '<text class="w-hub-t" x="' + C + '" y="' + (C + 6) + '">' + t + '</text><text class="w-hub-s" x="' + C + '" y="' + (C + 30) + '">' + sub + '</text></svg>';
+  }
+  function hit(e) {
+    var svg = box.querySelector('svg'), r = svg.getBoundingClientRect(), k = 664 / r.width;
+    var dx = (e.clientX - r.left) * k - 12 - C, dy = (e.clientY - r.top) * k - 12 - C, d = Math.hypot(dx, dy), n = slots().length;
+    if (d < R_IN - 4 || d > R_OUT + 14) return -1;
+    var a = (Math.atan2(dx, -dy) + TAU) % TAU, w = TAU / n;
+    return Math.floor(((a + w / 2) % TAU) / w);
+  }
+  function setHover(i) { if (i === hover) return; hover = i; draw(); }
+  function drop(i) {
+    if (i < 0) return;
+    var s = slots(), l = s[i];
+    if (MODES[mode].more && i === s.length - 1) { result.innerHTML = 'The real wheel flips to the next page of formats when you hover <b>MORE</b>.'; return; }
+    if (mode === 'convert') result.innerHTML = '<b>sunset.png</b> becomes <b>sunset.' + l.toLowerCase() + '</b> (simulated)';
+    else if (mode === 'tools') result.innerHTML = '<b>' + l + '</b> opens a small dialog for sunset.png (simulated)';
+    else result.innerHTML = '<b>' + l + '</b> on sunset.png (simulated)';
+  }
+  function setMode(m) {
+    mode = m; hover = -1; draw();
+    document.querySelectorAll('.keys button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
+  }
+
+  /* the scripted drop that opens the page */
+  var lines = document.querySelectorAll('.h1 .ln');
+  function lit(n) { for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('on', i < n); }
+  function wedgePos(i) {
+    var s = stage.getBoundingClientRect(), r = box.getBoundingClientRect(), n = slots().length, a = i * TAU / n, p = pt((R_IN + R_OUT) / 2 + 8, a);
+    return [r.left - s.left + (p[0] + 12) / 664 * r.width, r.top - s.top + (p[1] + 12) / 664 * r.height];
+  }
+  function moveGhost(x, y) { ghost.style.transform = 'translate(' + Math.round(x - ghost.offsetWidth / 2) + 'px,' + Math.round(y - ghost.offsetHeight / 2) + 'px)'; }
+  function later(fn, ms) { seqTimers.push(setTimeout(fn, ms)); }
+  function endSeq(finalLit) {
+    seqTimers.forEach(clearTimeout); seqTimers = []; seqActive = false;
+    box.classList.remove('closed'); if (finalLit) lit(3);
+    ghost.classList.add('gone'); ghost.classList.remove('show');
+    document.querySelectorAll('.keys button').forEach(function (b) { b.classList.remove('tap'); });
+  }
+  function startIdle() {
+    if (reduce || interacted) return;
+    var step = hover;
+    auto = setInterval(function () { if (interacted) return clearInterval(auto); step = (step + 1) % slots().length; hover = step; draw(); }, 1300);
+  }
+  function runIntro() {
+    seqActive = true; box.classList.add('closed'); lit(0);
+    var s = stage.getBoundingClientRect(), r = box.getBoundingClientRect(), shiftBtn = document.querySelector('.keys button[data-mode="convert"]');
+    ghost.classList.add('show');
+    ghost.style.transition = 'none'; moveGhost(Math.max(30, r.left - s.left + 20), r.top - s.top + 30); void ghost.offsetWidth; ghost.style.transition = '';
+    later(function () { lit(1); moveGhost(r.left - s.left + r.width / 2 - 150, r.top - s.top + r.height / 2 - 150); }, 500);
+    later(function () { lit(2); shiftBtn.classList.add('tap'); box.classList.remove('closed'); }, 1600);
+    later(function () { shiftBtn.classList.remove('tap'); var q = wedgePos(2); moveGhost(q[0], q[1]); }, 2300);
+    later(function () { setHover(2); }, 3000);
+    later(function () { drop(2); lit(3); ghost.classList.add('gone'); ghost.classList.remove('show'); seqActive = false; }, 3800);
+    later(startIdle, 6200);
+  }
+  function takeOver() { interacted = true; clearInterval(auto); if (seqActive) endSeq(true); }
+  box.addEventListener('pointermove', function (e) { takeOver(); setHover(hit(e)); });
+  box.addEventListener('pointerleave', function () { if (interacted) setHover(-1); });
+  box.addEventListener('click', function (e) { takeOver(); drop(hit(e)); });
+  document.querySelectorAll('.keys button').forEach(function (b) { b.addEventListener('click', function () { takeOver(); setMode(b.dataset.mode); }); });
+  window.addEventListener('keydown', function (e) {
+    var m = e.key === 'Shift' ? 'convert' : e.key === 'Control' ? 'tools' : e.key === 'Alt' ? 'actions' : null;
+    if (m && box.matches(':hover')) { takeOver(); setMode(m); }
+  });
+  draw();
+  if (reduce) { lit(3); hover = 2; draw(); } else { lit(0); runIntro(); }
+
+
+  /* ----- demo: a Windows desktop, one scene per key ----- */
+  var DEMOS = {
+    convert: { icon: 'dHeic', file: 'holiday.heic', ext: 'HEIC', ki: 0, title: 'CONVERT', items: ['JPG', 'PNG', 'WEBP', 'PDF', 'TIFF', 'AVIF', 'MORE'], pick: 0, res: { file: 'holiday.jpg', ext: 'JPG', toast: 'Saved next to the original' }, cap: 'Shift opens the Convert wheel. Drop the photo on JPG and a copy appears right beside it.' },
+    tools: { icon: 'dMp4', file: 'trip.mp4', ext: 'MP4', ki: 1, title: 'TOOLS', items: ['COMPRESS', 'TRIM', 'MERGE', 'REMOVE AUDIO', 'RESIZE'], pick: 0, res: { file: 'trip-compressed.mp4', ext: 'MP4', toast: 'Saved next to the original' }, cap: 'Ctrl opens the tools that fit the file. A video gets compress, trim, merge, remove audio and resize.' },
+    actions: { icon: 'dPdf', file: 'report.pdf', ext: 'PDF', ki: 2, title: 'ACTIONS', items: ['SHARE', 'FLOAT', 'COPY', 'MOVE', 'COPY PATH', 'TERMINAL'], pick: 2, res: { toast: 'Copied. Paste it in any folder.' }, cap: 'Alt opens actions: share, float to a shelf, copy, move, copy the path or open a terminal.' }
+  };
+  var ORDER = ['convert', 'tools', 'actions'], KEYS = ['Shift', 'Ctrl', 'Alt'];
+  var dm = document.getElementById('dm'), dWheel = document.getElementById('dWheel'), dCur = document.getElementById('dCur'), dChip = document.getElementById('dChip'),
+      dToast = document.getElementById('dToast'), dCap = document.getElementById('dCap'), dTray = document.getElementById('dTray'),
+      dKeys = document.querySelectorAll('#dKeys span'), dSteps = document.querySelectorAll('#dSteps div'), dDemo = 'convert', dT = [], dSeen = false;
+  function dlater(fn, ms) { dT.push(setTimeout(fn, ms)); }
+  function dclear() { dT.forEach(clearTimeout); dT = []; }
+  function dpos(x, y) { dCur.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)'; dChip.style.transform = 'translate(' + Math.round(x - 30) + 'px,' + Math.round(y - 22) + 'px)'; }
+  function dsteps(n) { dSteps.forEach(function (el, i) { el.classList.toggle('on', i < n); }); }
+  function dkey(i) { dKeys.forEach(function (k, j) { k.classList.toggle('on', j === i); }); }
+  function dWheelSvg(d, hot) {
+    var n = d.items.length, w = TAU / n, h = '';
+    d.items.forEach(function (l, i) {
+      var mid = i * w, p = pt((R_IN + R_OUT) / 2 + 8, mid), on = i === hot;
+      h += '<path class="w-seg' + (on ? ' hot' : '') + '" d="' + wedge(mid - w / 2, mid + w / 2, R_OUT, R_IN, GAP) + '"/><text class="w-lbl' + (on ? ' hot' : '') + '" x="' + p[0].toFixed(1) + '" y="' + (p[1] + 7).toFixed(1) + '">' + l + '</text>';
+    });
+    var t = hot >= 0 ? d.items[hot] : d.title, sub = hot >= 0 ? '' : d.file;
+    dWheel.innerHTML = '<svg viewBox="-12 -12 664 664" aria-hidden="true"><circle class="w-disc" cx="' + C + '" cy="' + C + '" r="' + (R_OUT + 12) + '"/>' + h +
+      '<circle class="w-hub" cx="' + C + '" cy="' + C + '" r="' + (R_IN - 12) + '"/><text class="w-hub-t" x="' + C + '" y="' + (C + 4) + '">' + t + '</text><text class="w-hub-s" x="' + C + '" y="' + (C + 34) + '">' + sub + '</text></svg>';
+  }
+  function dReset(d) {
+    document.querySelectorAll('.di.new').forEach(function (e) { e.remove(); });
+    document.querySelectorAll('.di').forEach(function (e) { e.classList.remove('lift', 'sel'); });
+    dWheelSvg(d, -1);
+    dWheel.classList.remove('open'); dToast.classList.remove('on'); dChip.classList.remove('show'); dCur.classList.remove('press'); dTray.classList.remove('on'); dkey(-1);
+    document.getElementById('dChipName').textContent = d.file; document.getElementById('dChipExt').textContent = d.ext;
+    document.getElementById('dStep2').textContent = 'Tap ' + KEYS[d.ki]; dCap.innerHTML = d.cap + '<small>Simulated demo. Nothing is converted on this page.</small>';
+    dsteps(0);
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.d === dDemo)); });
+  }
+  function dFinish(d) {
+    var src = document.getElementById(d.icon);
+    dChip.classList.remove('show'); dWheel.classList.remove('open'); dCur.classList.remove('press'); dkey(-1); src.classList.remove('lift', 'sel'); dsteps(3);
+    if (d.res.file && !dm.querySelector('.di.new')) {
+      var n = document.createElement('div'); n.className = 'di new'; n.style.left = '112px'; n.style.top = src.style.top;
+      n.innerHTML = '<span class="df"><b>' + d.res.ext + '</b></span><span class="dn">' + d.res.file + '</span>'; dm.insertBefore(n, dWheel);
+    }
+    dToast.textContent = d.res.toast; dToast.classList.add('on');
+  }
+  function dRun() {
+    dclear(); var d = DEMOS[dDemo]; dReset(d);
+    if (reduce) { dFinish(d); return; }
+    var W = dm.clientWidth, H = dm.clientHeight, ws = dWheel.offsetWidth, cx = W * 0.6, cy = H * 0.46;
+    dCur.style.transition = 'none'; dChip.style.transition = 'none'; dpos(W * 0.8, H * 0.8); void dCur.offsetWidth; dCur.style.transition = ''; dChip.style.transition = '';
+    dWheel.style.left = cx + 'px'; dWheel.style.top = cy + 'px';
+    var src = document.getElementById(d.icon), ir = src.getBoundingClientRect(), mr = dm.getBoundingClientRect();
+    var ix = ir.left - mr.left + 40, iy = ir.top - mr.top + 30;
+    var a = d.pick * TAU / d.items.length, p = pt((R_IN + R_OUT) / 2 + 8, a), tx = cx - ws / 2 + (p[0] + 12) / 664 * ws, ty = cy - ws / 2 + (p[1] + 12) / 664 * ws;
+    dlater(function () { dpos(ix, iy); }, 250);
+    dlater(function () { dCur.classList.add('press'); src.classList.add('sel'); dsteps(1); }, 1300);
+    dlater(function () { src.classList.remove('sel'); src.classList.add('lift'); dChip.classList.add('show'); dpos(ix + 6, iy + 4); }, 1450);
+    dlater(function () { dpos(cx, cy); }, 1800);
+    dlater(function () { dkey(d.ki); dTray.classList.add('on'); dsteps(2); }, 3000);
+    dlater(function () { dWheel.classList.add('open'); dChip.classList.remove('show'); }, 3300);
+    dlater(function () { dpos(tx, ty); }, 4200);
+    dlater(function () { dWheelSvg(d, d.pick); }, 5000);
+    dlater(function () { dFinish(d); }, 5800);
+    dlater(function () { if (dSeen) { dDemo = ORDER[(ORDER.indexOf(dDemo) + 1) % ORDER.length]; dRun(); } }, 10200);
+  }
+  document.querySelectorAll('.seg button').forEach(function (b) { b.addEventListener('click', function () { dDemo = b.dataset.d; dRun(); }); });
+  document.getElementById('dReplay').addEventListener('click', dRun);
+  dReset(DEMOS.convert); dFinish(DEMOS.convert);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting && !dSeen) { dSeen = true; dRun(); } else if (!e.isIntersecting && dSeen) { dSeen = false; dclear(); dReset(DEMOS[dDemo]); dFinish(DEMOS[dDemo]); } });
+    }, { threshold: .45 }).observe(dm);
+  }
+
+  /* light / dark switch (follows the system until the visitor picks) */
+  var tb = document.getElementById('themeBtn');
+  try { var sv = localStorage.getItem('orange-theme'); if (sv === 'light' || sv === 'dark') root.setAttribute('data-theme', sv); } catch (e) {}
+  tb.addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), nx = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nx);
+    try { localStorage.setItem('orange-theme', nx); } catch (e) {}
+  });
+
+  /* nav hairline on scroll */
+  var top = document.getElementById('top');
+  function onScroll() { top.classList.toggle('scrolled', window.scrollY > 8); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* counts roll up once when they scroll into view (they already read the final value without this) */
+  if (!reduce && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return; io.unobserve(e.target);
+        var el = e.target, to = +el.dataset.count, t0 = performance.now();
+        (function tick(t) { var k = Math.min(1, (t - t0) / 900), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = v; if (k < 1) requestAnimationFrame(tick); })(t0);
+      });
+    }, { threshold: .6 });
+    document.querySelectorAll('[data-count]').forEach(function (el) { io.observe(el); });
+  }
+
+  /* formats */
+  var FMT = ['JPG', 'PNG', 'WEBP', 'HEIC', 'AVIF', 'TIFF', 'BMP', 'SVG', 'MP4', 'MOV', 'MKV', 'WEBM', 'GIF', 'MP3', 'FLAC', 'WAV', 'M4A', 'OGG', 'PDF', 'DOCX', 'PPTX', 'XLSX', 'CSV', 'EPUB', 'MD', 'HTML', 'SRT', 'ZIP', '7Z'];
+  document.getElementById('fmts').innerHTML = FMT.map(function (f) { return '<span>' + f + '</span>'; }).join('') + '<span class="more">and more</span>';
+
+  /* copy button */
+  var btn = document.getElementById('copyBtn');
+  btn.addEventListener('click', function () {
+    var txt = document.getElementById('cmd').innerText;
+    function done(ok) { btn.textContent = ok ? 'Copied' : 'Select the text above and copy it'; setTimeout(function () { btn.textContent = 'Copy commands'; }, 2200); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); });
+    else done(false);
+  });
+})();
+</script>
+</body>
+</html>
