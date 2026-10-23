@@ -106,6 +106,7 @@ The master logo is `docs/brand/mark.svg`. Run `python3 scripts/make-icons.py` to
 Copyright (c) 2026 **Joseph Morris**. Orange is released under the [MIT Licence](LICENSE): you may use, copy, modify and distribute it, as long as the copyright notice and licence text stay with it.
 
 The helper programs Orange runs keep their own licences: ffmpeg (LGPL or GPL, depending on the build), ImageMagick, pandoc (GPL), qpdf (Apache-2.0), poppler (GPL), 7-Zip (LGPL), ExifTool (Perl or GPL) and LibreOffice (MPL). Check them before you redistribute an installer.
+ffmpeg is bundled as the GPL build (it includes the H.264 encoder). Orange runs it as a separate program and does not modify it.
 
 ## Disclaimer
 
