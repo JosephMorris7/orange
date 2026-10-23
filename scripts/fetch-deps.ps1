@@ -2,7 +2,7 @@
  Downloads the helper programs Orange shells out to into src-tauri\resources\bin so the installer can ship them.
  Run from the repo root in PowerShell:  .\scripts\fetch-deps.ps1
  ffmpeg, pandoc and qpdf are downloaded from GitHub; the rest come from winget and are copied. Review the licences of what you bundle:
- ffmpeg (GPL/LGPL build you choose), ImageMagick (Apache-style), pandoc (GPL), 7-Zip (LGPL), exiftool (Perl/GPL), qpdf (Apache-2.0), poppler (GPL).
+ ffmpeg (GPL build, needed for libx264), ImageMagick (Apache-style), pandoc (GPL), 7-Zip (LGPL), exiftool (Perl/GPL), qpdf (Apache-2.0), poppler (GPL).
  LibreOffice is NOT bundled (very large); Orange offers an Install LibreOffice button in Settings and uses it only if installed.
 #>
 $ErrorActionPreference = 'Stop'
@@ -20,9 +20,14 @@ function Get-Latest($repo, $pattern) {
 }
 function Unzip($zip, $dest) { if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }; Expand-Archive $zip -DestinationPath $dest }
 
-# ffmpeg + ffprobe (BtbN "essentials-style" LGPL shared-free build)
-$z = Get-Latest 'BtbN/FFmpeg-Builds' 'ffmpeg-master-latest-win64-lgpl\.zip$'
+# ffmpeg + ffprobe: the GPL build, because only it contains the H.264 (libx264) encoder that
+# Compress / Trim / Resize video and MP4 conversion need. The LGPL build has no libx264.
+$z = Get-Latest 'BtbN/FFmpeg-Builds' 'ffmpeg-master-latest-win64-gpl\.zip$'
 Unzip $z "$tmp\ffmpeg"; Get-ChildItem "$tmp\ffmpeg" -Recurse -Include ffmpeg.exe, ffprobe.exe | Copy-Item -Destination $bin -Force
+$enc = & "$bin\ffmpeg.exe" -hide_banner -encoders 2>&1 | Out-String
+foreach ($e in 'libx264', 'libvpx-vp9', 'libmp3lame', 'libopus', 'aac') {
+  if ($enc -notmatch "\b$e\b") { Write-Warning "ffmpeg is missing the $e encoder: do not ship this build." } else { Write-Host "ffmpeg encoder ok: $e" -ForegroundColor Green }
+}
 
 # pandoc
 $z = Get-Latest 'jgm/pandoc' 'windows-x86_64\.zip$'
