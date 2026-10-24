@@ -24,7 +24,7 @@ export interface Settings {
   keys: { convert: string; tools: string; actions: string };
   output: { mode: 'beside' | 'folder'; folder: string | null };
   launch_at_login: boolean; notifications: boolean; wheel_scale: number;
-  theme: 'system' | 'light' | 'dark'; first_run_done: boolean;
+  theme: 'system' | 'light' | 'dark'; first_run_done: boolean; startup_animation: boolean;
 }
 
 export interface JobDone { job_id: string; outputs: string[]; error: string | null; cancelled: boolean }

@@ -4,7 +4,7 @@ use crate::im::abs;
 use crate::info::{probe, Probe};
 use crate::params::{f64_or, i64_or, str_or};
 use crate::util::{finish_named, s};
-use orange_core::kind::ext_of;
+use orange_core::kind::effective_ext as ext_of;
 use orange_core::paths::stem_of;
 use orange_core::{exec, Ctx, Dep, Error, Result};
 use serde_json::Value;

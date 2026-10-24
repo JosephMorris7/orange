@@ -20,6 +20,7 @@ let visible = false;
 let loadSeq = 0;
 let moreTimer: number | undefined;
 let slots: Slot[] = [];
+let empty = false; // the file has been checked and nothing can be done with it
 
 const titles: Record<Mode, string> = { convert: 'CONVERT', tools: 'TOOLS', actions: 'ACTIONS' };
 
@@ -49,6 +50,7 @@ function centreText(): { title: string; sub: string } {
   if (slot?.more) return { title: 'MORE', sub: 'hold to flip the page' };
   if (slot?.item) return { title: slot.item.label, sub: slot.item.hint ?? (mode === 'convert' ? `to ${slot.item.label}` : '') };
   if (!paths.length) return { title: titles[mode], sub: 'move onto the wheel' };
+  if (empty && paths.length) return { title: titles[mode], sub: 'no options for this file' };
   const name = paths.length === 1 ? baseName(paths[0]) : `${paths.length} files`;
   return { title: titles[mode], sub: name.length > 26 ? name.slice(0, 24) + '…' : name };
 }
@@ -116,8 +118,8 @@ async function loadItems(): Promise<void> {
     const got = await api.wheelItems(mode, paths);
     void api.log(`wheel items for ${mode}: ${got.length}`);
     if (seq !== loadSeq) return;
-    items = got; page = 0; hover = -1;
-  } catch (e) { void api.log(`wheel items failed: ${String(e)}`); items = []; }
+    items = got; page = 0; hover = -1; empty = got.length === 0;
+  } catch (e) { void api.log(`wheel items failed: ${String(e)}`); items = []; empty = false; }
   render();
 }
 
@@ -135,7 +137,7 @@ async function commit(index: number): Promise<void> {
 }
 
 function reset(): void {
-  visible = false; paths = []; items = []; slots = []; hover = -1; page = 0; loadSeq++;
+  visible = false; paths = []; items = []; slots = []; hover = -1; page = 0; loadSeq++; empty = false;
   window.clearTimeout(moreTimer);
 }
 

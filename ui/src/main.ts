@@ -97,6 +97,7 @@ function settingsCard(): HTMLElement {
         h('button', { class: 'btn', onclick: () => void pickFolder() }, 'Browse…'))),
     toggle('Start Orange when I sign in', s.launch_at_login, (v) => void save((x) => { x.launch_at_login = v; })),
     toggle('Show a notification when a job finishes', s.notifications, (v) => void save((x) => { x.notifications = v; })),
+    toggle('Play a short animation when Orange starts', s.startup_animation, (v) => void save((x) => { x.startup_animation = v; })),
     h('div', { class: 'field' }, h('label', { for: 'scale' }, `Wheel size · ${Math.round(s.wheel_scale * 100)}%`),
       h('input', { id: 'scale', type: 'range', min: 0.8, max: 1.4, step: 0.05, value: s.wheel_scale, onchange: (e) => void save((x) => { x.wheel_scale = Number((e.target as HTMLInputElement).value); }) })),
     h('div', { class: 'field' }, h('label', { for: 'theme' }, 'Theme'),
@@ -146,7 +147,7 @@ function depsCard(): HTMLElement {
 function render(): void {
   const parts: (Node | false)[] = [
     h('header', { class: 'top' }, h('img', { src: './mark.svg', alt: '' }), h('div', { class: 'grow' }, h('h1', {}, 'Orange'), h('p', { class: 'muted small' }, `Version ${counts.version} · ${counts.conversion_option_count} conversions · ${counts.tool_count} tools · 6 actions`))),
-    !settings.first_run_done && h('div', { class: 'banner' }, icon('check', 20), h('span', {}, 'Orange is running in the tray. Close this window any time; it keeps listening for drags.'),
+    !settings.first_run_done && h('div', { class: 'banner' }, icon('check', 20), h('span', {}, 'Orange is running in the tray and will start with Windows (you can change that below). Close this window any time; it keeps listening for drags.'),
       h('button', { class: 'btn primary', onclick: () => void save((x) => { x.first_run_done = true; }) }, 'Got it')),
     hero(),
     h('div', { class: 'grid2' }, settingsCard(), h('div', { style: 'display:grid;gap:18px' }, jobsCard(), depsCard())),

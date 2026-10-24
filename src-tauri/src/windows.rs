@@ -108,15 +108,28 @@ pub fn hide_wheel_later(app: &AppHandle, gen: u64, ms: u64) {
     });
 }
 
+fn build_main(app: &AppHandle, visible: bool) -> tauri::Result<WebviewWindow> {
+    WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+        .title("Orange")
+        .inner_size(980.0, 700.0)
+        .min_inner_size(760.0, 560.0)
+        .visible(visible)
+        .build()
+}
+
+/// Create Orange's window without showing it, so its page has loaded by the time `show_main` is called.
+pub fn prepare_main(app: &AppHandle) {
+    if app.get_webview_window("main").is_none() {
+        if let Err(e) = build_main(app, false) {
+            log::warn!("main window (prepare): {e}");
+        }
+    }
+}
+
 pub fn show_main(app: &AppHandle) {
     let w = match app.get_webview_window("main") {
         Some(w) => w,
-        None => match WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-            .title("Orange")
-            .inner_size(980.0, 700.0)
-            .min_inner_size(760.0, 560.0)
-            .build()
-        {
+        None => match build_main(app, true) {
             Ok(w) => w,
             Err(e) => {
                 log::error!("main window: {e}");

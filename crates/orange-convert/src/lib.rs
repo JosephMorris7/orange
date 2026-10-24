@@ -4,7 +4,7 @@
 //! (which converter runs) and the external tools it needs; the wheel entries, availability
 //! notes, `option_count()` and `convert()` are all derived from that one table.
 
-use orange_core::kind::ext_of;
+use orange_core::kind::{effective_ext, kind_of_ext};
 use orange_core::{Capabilities, Ctx, Dep, Error, Kind, Result};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -208,7 +208,23 @@ fn registry() -> &'static Vec<Pair> {
 }
 
 fn find_pair(from: &str, to: &str) -> Option<&'static Pair> {
-    registry().iter().find(|p| p.from == from && p.to == to)
+    registry().iter().find(|p| p.from == from && p.to == to).or_else(|| alias_pairs(from).into_iter().find(|p| p.to == to))
+}
+
+/// Audio and video files with an extension that is not a registered source (".mpeg", ".aac", ".3gp", ...)
+/// borrow the pairs of the group's first sources, which run the very same ffmpeg route. The first source
+/// supplies every target except its own format; the second fills that one in.
+fn alias_pairs(from: &str) -> Vec<&'static Pair> {
+    if GROUPS.iter().any(|g| g.sources.contains(&from)) {
+        return Vec::new();
+    }
+    let kind = kind_of_ext(from);
+    if !matches!(kind, Kind::Audio | Kind::Video) {
+        return Vec::new();
+    }
+    let Some(g) = GROUPS.iter().find(|g| g.kind == kind) else { return Vec::new() };
+    let (first, second) = (g.sources[0], g.sources[1]);
+    registry().iter().filter(|p| (p.from == first && p.to != from) || (p.from == second && p.to == first)).collect()
 }
 
 // ------------------------------------------------------------------ public API
@@ -218,8 +234,11 @@ pub fn options_for(path: &Path, caps: &Capabilities) -> Vec<FormatOption> {
     if path.is_dir() {
         return Vec::new();
     }
-    let from = normalize(&ext_of(path));
+    let from = normalize(&effective_ext(path));
     let mut pairs: Vec<&Pair> = registry().iter().filter(|p| p.from == from).collect();
+    if pairs.is_empty() {
+        pairs = alias_pairs(&from);
+    }
     // each group lists its targets most useful first
     pairs.sort_by_key(|p| {
         GROUPS.iter().find(|g| g.sources.contains(&p.from)).and_then(|g| g.targets.iter().position(|t| *t == p.to)).unwrap_or(usize::MAX)
@@ -248,7 +267,7 @@ pub fn option_count() -> usize {
 /// Convert `input` to format `to`. Multi-output conversions (e.g. PDF -> PNG, one file per
 /// page) return every file created. Outputs are never overwritten (see `orange_core::paths`).
 pub fn convert(input: &Path, to: &str, ctx: &Ctx) -> Result<Vec<PathBuf>> {
-    let from = normalize(&ext_of(input));
+    let from = normalize(&effective_ext(input));
     let to = normalize(to);
     let pair = find_pair(&from, &to).ok_or_else(|| Error::Unsupported(format!("cannot convert .{from} to .{to}")))?;
     if !input.is_file() {
@@ -278,4 +297,61 @@ pub fn convert(input: &Path, to: &str, ctx: &Ctx) -> Result<Vec<PathBuf>> {
 /// Kinds this crate can convert (for docs/UI).
 pub fn supported_kinds() -> Vec<Kind> {
     GROUPS.iter().map(|g| g.kind).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn caps() -> Capabilities {
+        Capabilities::from_paths(HashMap::new())
+    }
+    fn ids(path: &str) -> Vec<String> {
+        options_for(Path::new(path), &caps()).into_iter().map(|o| o.id).collect()
+    }
+
+    #[test]
+    fn registered_formats_are_unchanged() {
+        assert_eq!(option_count(), 248);
+        assert!(ids("a.mp3").contains(&"wav".to_string()));
+        assert!(!ids("a.mp3").contains(&"mp3".to_string()));
+    }
+
+    #[test]
+    fn unlisted_audio_extensions_get_the_audio_wheel() {
+        for f in ["a.aac", "a.mka", "a.m4b", "a.weba", "a.ac3"] {
+            let o = ids(f);
+            for want in ["mp3", "wav", "flac", "ogg"] {
+                assert!(o.contains(&want.to_string()), "{f} should offer {want}: {o:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn unlisted_video_extensions_get_the_video_wheel_including_mp4() {
+        for f in ["a.mpeg", "a.mpg", "a.3gp", "a.m4v", "a.flv", "a.ogv"] {
+            let o = ids(f);
+            for want in ["mp4", "mp3", "gif", "webm"] {
+                assert!(o.contains(&want.to_string()), "{f} should offer {want}: {o:?}");
+            }
+        }
+        assert!(find_pair("mpeg", "mp4").is_some());
+        assert!(find_pair("aac", "wav").is_some());
+        assert!(find_pair("mpeg", "docx").is_none());
+    }
+
+    #[test]
+    fn a_file_with_an_unknown_extension_is_recognised_by_its_contents() {
+        let d = std::env::temp_dir().join(format!("orange-conv-{}", std::process::id()));
+        std::fs::create_dir_all(&d).unwrap();
+        let song = d.join("Killin' 'em (From Scene)");
+        std::fs::write(&song, b"ID3\x04\x00\x00\x00\x00\x00\x00 audio").unwrap();
+        let o: Vec<String> = options_for(&song, &caps()).into_iter().map(|o| o.id).collect();
+        assert!(o.contains(&"wav".to_string()) && o.contains(&"flac".to_string()), "{o:?}");
+        let noise = d.join("notes.abc");
+        std::fs::write(&noise, b"plain text").unwrap();
+        assert!(options_for(&noise, &caps()).is_empty());
+        let _ = std::fs::remove_dir_all(&d);
+    }
 }

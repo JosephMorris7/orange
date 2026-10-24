@@ -1,0 +1,12 @@
+/* The startup animation: a full-screen, transparent, click-through page. Everything is positioned by splash.ts. */
+html, body { margin:0; width:100%; height:100%; background:transparent; overflow:hidden; pointer-events:none; user-select:none; -webkit-user-select:none; }
+#stage { position:fixed; inset:0; }
+.mark { position:fixed; left:0; top:0; width:160px; height:160px; opacity:0; will-change:transform, opacity; filter:drop-shadow(0 0 22px rgba(242,92,5,.55)); }
+.ghost { filter:none; }
+.veil { position:fixed; inset:0; opacity:0; }
+.word { position:fixed; left:0; top:0; opacity:0; color:#fff; font:800 46px/1 "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif; letter-spacing:.02em; text-shadow:0 2px 18px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.45); will-change:transform, opacity; }
+.ring { position:fixed; left:0; top:0; width:20px; height:20px; border-radius:50%; border:2px solid #ffb37a; opacity:0; will-change:transform, opacity; }
+/* browser preview only (npm run dev, open /splash.html) */
+body.dev { background:#1c1611; }
+body.dev.ui-open::before { content:""; position:fixed; left:18%; top:12%; width:64%; height:70%; border-radius:12px; background:#2a2119; border:1px solid #4a3d31; }
+body.dev::after { content:"preview: click to replay"; position:fixed; left:12px; bottom:10px; color:#8d7f70; font:12px system-ui; }

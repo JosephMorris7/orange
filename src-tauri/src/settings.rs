@@ -29,6 +29,10 @@ pub struct Settings {
     /// "system" | "light" | "dark"
     pub theme: String,
     pub first_run_done: bool,
+    /// Play the short "wheel flies into the tray" animation when Orange starts.
+    pub startup_animation: bool,
+    /// Set once the first-run default "start with Windows" has been applied, so it is never re-applied.
+    pub startup_default_applied: bool,
 }
 
 impl Default for Settings {
@@ -36,11 +40,13 @@ impl Default for Settings {
         Settings {
             keys: Keys { convert: "Shift".into(), tools: "Control".into(), actions: "Alt".into() },
             output: OutputCfg { mode: "beside".into(), folder: None },
-            launch_at_login: false,
+            launch_at_login: true,
             notifications: true,
             wheel_scale: 1.0,
             theme: "system".into(),
             first_run_done: false,
+            startup_animation: true,
+            startup_default_applied: false,
         }
     }
 }

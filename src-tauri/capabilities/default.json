@@ -6,7 +6,8 @@
     "main",
     "wheel",
     "tool-*",
-    "shelf"
+    "shelf",
+    "splash"
   ],
   "permissions": [
     "core:default",

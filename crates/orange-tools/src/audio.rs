@@ -4,7 +4,7 @@ use crate::im::abs;
 use crate::info::probe;
 use crate::params::{f64_or, i64_or, str_or};
 use crate::util::{finish_named, s};
-use orange_core::kind::ext_of;
+use orange_core::kind::effective_ext as ext_of;
 use orange_core::paths::stem_of;
 use orange_core::{exec, Ctx, Dep, Error, Result};
 use serde_json::Value;
@@ -45,7 +45,7 @@ pub(crate) fn run_each(id: &str, inputs: &[PathBuf], params: &Value, ctx: &Ctx) 
             "compress-audio" => {
                 let kbps = str_or(params, "bitrate_kbps", "0").parse::<u32>().unwrap_or(0);
                 let kbps = if kbps == 0 { i64_or(params, "bitrate_kbps", 128).clamp(32, 320) as u32 } else { kbps.clamp(32, 320) };
-                ext = if matches!(src.as_str(), "wav" | "flac" | "aiff" | "aif" | "wma") { "mp3".into() } else { src.clone() };
+                ext = if matches!(src.as_str(), "wav" | "flac" | "aiff" | "aif" | "wma") || encoder(&src, 128).is_none() { "mp3".into() } else { src.clone() };
                 suffix = "Compressed";
                 dur = pr.duration;
                 args.extend(v(&["-vn", "-map", "0:a:0", "-map_metadata", "0"]));

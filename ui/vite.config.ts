@@ -15,6 +15,7 @@ export default defineConfig({
         wheel: resolve(__dirname, 'wheel.html'),
         tool: resolve(__dirname, 'tool.html'),
         shelf: resolve(__dirname, 'shelf.html'),
+        splash: resolve(__dirname, 'splash.html'),
       },
     },
   },

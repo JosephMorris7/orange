@@ -90,7 +90,7 @@ const ACTIONS: WheelItem[] = [
 
 let settings: Settings = {
   keys: { convert: 'Shift', tools: 'Control', actions: 'Alt' }, output: { mode: 'beside', folder: null },
-  launch_at_login: false, notifications: true, wheel_scale: 1, theme: 'system', first_run_done: false,
+  launch_at_login: false, notifications: true, wheel_scale: 1, theme: 'system', first_run_done: false, startup_animation: true,
 };
 let shelf: string[] = [];
 let jobSeq = 0;

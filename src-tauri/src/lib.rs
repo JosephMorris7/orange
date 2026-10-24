@@ -8,6 +8,7 @@ mod jobs;
 mod logger;
 mod session;
 mod settings;
+mod splash;
 mod state;
 mod wheel;
 mod win;
@@ -103,6 +104,23 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+/// First run only: turn on "Start Orange when I sign in" and remember that this was done.
+fn apply_first_run_defaults(app: &AppHandle) {
+    use tauri_plugin_autostart::ManagerExt;
+    let st = app.state::<AppState>();
+    {
+        let mut s = st.settings.lock().unwrap();
+        s.launch_at_login = true;
+        s.startup_default_applied = true;
+        if let Err(e) = settings::save_to(&st.settings_file, &s) {
+            log::warn!("could not save the first-run defaults: {e}");
+        }
+    }
+    if let Err(e) = app.autolaunch().enable() {
+        log::warn!("autostart: {e}");
+    }
+}
+
 /// `Orange --demo-wheel [convert|tools|actions] [file…]` opens the wheel without any drag, for development.
 fn demo_wheel_args() -> Option<(String, Vec<String>)> {
     let args: Vec<String> = std::env::args().collect();
@@ -156,6 +174,9 @@ pub fn run() {
             commands::open_wheel,
             commands::drag_icon,
             commands::log_line,
+            splash::splash_ready,
+            splash::splash_opened,
+            splash::splash_done,
         ])
         .on_window_event(|window, event| {
             // Orange stays resident in the tray: closing the settings window only hides it.
@@ -182,11 +203,26 @@ pub fn run() {
             build_tray(&handle)?;
             spawn_session_worker(handle.clone());
             let first_run = !app.state::<AppState>().settings().first_run_done;
+            // A fresh install starts with Windows by default (once), so the wheel greets you after every boot.
+            // The setting stays in the window and can be switched off.
+            if first_run && !app.state::<AppState>().settings().startup_default_applied {
+                apply_first_run_defaults(&handle);
+            }
+            let show_ui = first_run || !hidden;
             if let Some((mode, files)) = demo_wheel_args() {
                 windows::show_main(&handle);
                 windows::show_wheel(&handle, &mode, 0, 0, Some(files));
-            } else if first_run || !hidden {
-                windows::show_main(&handle);
+            } else {
+                // `--demo-startup` always plays the animation (development); otherwise it follows the setting.
+                // Orange's own window opens when the wheel has finished spinning, just as it drops into the tray. At sign-in the desktop is still loading,
+                // so wait a little longer before it starts.
+                let demo_startup = std::env::args().any(|a| a == "--demo-startup");
+                let animate = demo_startup || app.state::<AppState>().settings().startup_animation;
+                if animate {
+                    splash::start(&handle, if hidden { 3000 } else { 400 }, show_ui);
+                } else if show_ui {
+                    windows::show_main(&handle);
+                }
             }
             Ok(())
         })
