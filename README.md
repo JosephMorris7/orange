@@ -6,7 +6,7 @@
 
 <p align="center">
   Drag a file. Tap a key. Drop it on the wheel.<br>
-  An offline file converter and toolbox for Windows 10 and 11 that lives in your tray.
+  An offline file converter and toolbox for Windows 11 that lives in your tray.
 </p>
 
 <p align="center">
