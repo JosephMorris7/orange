@@ -13,7 +13,10 @@ cat > "$WORK/fetch.toml" <<'T'
 [package]
 name = "fetch"
 version = "0.0.0"
-edition = "2021"`n[workspace]`n[dependencies]`nwindows = "0.58"
+edition = "2021"
+[workspace]
+[dependencies]
+windows = "0.58"
 T
 mkdir -p "$WORK/fetchcrate/src" && cp "$WORK/fetch.toml" "$WORK/fetchcrate/Cargo.toml" && : > "$WORK/fetchcrate/src/lib.rs"
 (cd "$WORK/fetchcrate" && cargo fetch >/dev/null 2>&1 || cargo fetch)
