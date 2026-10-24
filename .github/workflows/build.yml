@@ -23,7 +23,7 @@ jobs:
         working-directory: ui
       - run: cargo test --workspace
       - name: Windows layer type-check (against the real windows crate API)
-        run: scripts/check-windows-types.sh
+        run: bash scripts/check-windows-types.sh
 
   windows-build:
     runs-on: windows-latest
