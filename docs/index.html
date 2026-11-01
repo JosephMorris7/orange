@@ -14,8 +14,9 @@
    hairlines on a lot of air. Light by default, dark follows the viewer. Orange is used only for the logo, the active
    wedge, the last line of the headline and the download buttons. */
 :root {
-  --bg:#faf9f7; --surface:#f1efeb; --ink:#16120f; --muted:#6c645c; --faint:#a39b92; --line:#e7e3dd; --line2:#d6d1c9;
-  --accent:#f25c05; --accent-ink:#ffffff; --accent-soft:#fde9dc; --wedge:#ffffff; --wedge-line:#e7e3dd;
+  --bg:#fbf1e3; --surface:#f6e6d0; --ink:#1c130c; --muted:#6f5f50; --faint:#a8967f; --line:#ecd9c0; --line2:#dcc3a2;
+  --accent:#f25c05; --accent-ink:#ffffff; --accent-soft:#fcd9bd; --wedge:#fff8ee; --wedge-line:#ecd9c0;
+  --glow:radial-gradient(900px 600px at 88% -6%, rgba(242,92,5,.13), transparent 70%), radial-gradient(800px 600px at -8% 62%, rgba(242,150,60,.12), transparent 70%);
   --display:"Bricolage Grotesque","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
   --body:"Hanken Grotesk","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",Consolas,"Cascadia Mono",monospace;
@@ -23,16 +24,16 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg:#0f0d0b; --surface:#181512; --ink:#f3eee8; --muted:#a39a90; --faint:#6e665d; --line:#26211c; --line2:#38312a;
-  --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
+  --glow:none; --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 50px -14px rgba(0,0,0,.7); color-scheme:dark; } }
 :root[data-theme="dark"] {
   --bg:#0f0d0b; --surface:#181512; --ink:#f3eee8; --muted:#a39a90; --faint:#6e665d; --line:#26211c; --line2:#38312a;
-  --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
+  --glow:none; --accent:#ff6a1a; --accent-ink:#1a0d04; --accent-soft:#2a1709; --wedge:#171410; --wedge-line:#2a251f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 50px -14px rgba(0,0,0,.7); color-scheme:dark; }
 
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
-body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.65 var(--body); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+body { margin:0; background:var(--glow) fixed, var(--bg); color:var(--ink); font:17px/1.65 var(--body); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
 body::before { content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:60; background:var(--bg); }
 h1,h2,h3 { font-family:var(--display); margin:0; text-wrap:balance; font-weight:600; letter-spacing:-.03em; }
 p { margin:0; }
