@@ -36,6 +36,7 @@ Results are saved next to the original and never overwrite an existing file.
 - **Convert** images, video, audio, PDFs, documents, slides, spreadsheets, subtitles and archives. The list of source and target formats is computed from a registry (run `orange counts` to see it), never hard-coded.
 - **26 tools**: compress, crop, edit, annotate, redact, add background, resize, collage, edit metadata, trim, merge, split, rotate, lock and unlock PDFs, create archives and more.
 - **Actions**: share, float to a shelf, copy, move, copy the path, open a terminal in the folder.
+- **A finish card.** When a job is done, a small card by the tray shows how much space you saved, with **Show in folder** and a short **Undo**. Undo only removes the files that job created, never the originals. A short animation also confirms your choice on the wheel. Both can be switched off in Settings.
 - **Works offline.** No account and no uploads. Files are processed on your PC.
 - **Real redaction.** The Redact tool destroys the covered pixels in a new copy and strips its metadata.
 - **Everything included.** The installer ships ffmpeg, pandoc, qpdf, ImageMagick, poppler, 7-Zip and ExifTool. LibreOffice (for Word, Excel and PowerPoint files, about 350 MB) is optional: the installer offers it at the end of setup, and Settings has an **Install LibreOffice** button for later.
@@ -85,7 +86,7 @@ Linux and macOS (engine and UI development only): run `scripts/fetch-deps.sh`, t
 ## Status
 
 - The engine, tools, drag-session logic, settings, job runner and file actions have automated tests (`cargo test --workspace`).
-- Tried by hand on Windows 11 x64: installing, the tray, settings, the wheel opening on a key tap during a drag, dropping on a wedge, and the Tools, Actions and shelf flows.
+- Tried by hand on Windows 11 x64: installing, the tray, settings, the wheel opening on a key tap during a drag, dropping on a wedge, the choice animation and finish card, and the Tools, Actions and shelf flows.
 - Least tested: the share sheet, OCR and face detection (WinRT), other Windows versions, ARM64, multi-monitor layouts and unusual DPI settings.
 - Installers are unsigned, so SmartScreen will warn.
 
