@@ -91,6 +91,7 @@ const ACTIONS: WheelItem[] = [
 let settings: Settings = {
   keys: { convert: 'Shift', tools: 'Control', actions: 'Alt' }, output: { mode: 'beside', folder: null },
   launch_at_login: false, notifications: true, wheel_scale: 1, theme: 'system', first_run_done: false, startup_animation: true,
+  commit_animation: true, finish_card: true,
 };
 let shelf: string[] = [];
 let jobSeq = 0;
@@ -116,6 +117,9 @@ async function invoke(cmd: string, a: Record<string, unknown>): Promise<unknown>
     }
     case 'wheel_commit': return { kind: a.mode === 'actions' ? 'done' : (a.mode === 'tools' && TOOLS.find((t) => t.id === a.id)?.ui !== 'none') ? 'dialog' : 'job', job_id: 'job-' + ++jobSeq };
     case 'wheel_cancel': return null;
+    case 'finish_ready': return { title: 'Report.docx → Report.pdf', detail: 'Saved 38 MB · 62% smaller', first_output: 'C:\\Users\\you\\Report.pdf', can_undo: true };
+    case 'finish_close': return null;
+    case 'finish_undo': return 1;
     case 'run_convert': case 'run_tool': {
       const id = 'job-' + ++jobSeq; let f = 0;
       const t = setInterval(() => {

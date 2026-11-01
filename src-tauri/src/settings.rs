@@ -31,6 +31,10 @@ pub struct Settings {
     pub first_run_done: bool,
     /// Play the short "wheel flies into the tray" animation when Orange starts.
     pub startup_animation: bool,
+    /// Play the short "slice folds into a tick" animation when an option is chosen on the wheel.
+    pub commit_animation: bool,
+    /// Show a small card by the tray when a job finishes (with Show in folder and Undo).
+    pub finish_card: bool,
     /// Set once the first-run default "start with Windows" has been applied, so it is never re-applied.
     pub startup_default_applied: bool,
 }
@@ -46,6 +50,8 @@ impl Default for Settings {
             theme: "system".into(),
             first_run_done: false,
             startup_animation: true,
+            commit_animation: true,
+            finish_card: true,
             startup_default_applied: false,
         }
     }
@@ -165,6 +171,7 @@ mod tests {
         let l = load_from(&p);
         assert_eq!(l.theme, "dark");
         assert!(l.notifications);
+        assert!(l.commit_animation && l.finish_card, "older settings files get the new options switched on");
         std::fs::write(&p, "not json").unwrap();
         assert_eq!(load_from(&p), Settings::default());
     }

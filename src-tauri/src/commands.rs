@@ -68,24 +68,28 @@ pub async fn wheel_items(state: State<'_, AppState>, mode: String, paths: Vec<St
 }
 
 #[tauri::command]
-pub async fn wheel_commit(app: AppHandle, state: State<'_, AppState>, mode: String, id: String, paths: Vec<String>) -> R<Value> {
+pub async fn wheel_commit(app: AppHandle, state: State<'_, AppState>, mode: String, id: String, paths: Vec<String>, animate: Option<bool>) -> R<Value> {
     if paths.is_empty() {
         windows::hide_wheel(&app);
         return Err("no files".into());
     }
     match mode.as_str() {
         "convert" => {
-            windows::hide_wheel(&app);
+            hide_after_choice(&app, &state, animate);
             let job_id = start_convert(&app, &state, paths, id);
             Ok(json!({"kind": "job", "job_id": job_id}))
         }
         "tools" => {
-            windows::hide_wheel(&app);
-            let info = orange_tools::all_tools().into_iter().find(|t| t.id == id).ok_or_else(|| format!("unknown tool: {id}"))?;
+            let info = orange_tools::all_tools().into_iter().find(|t| t.id == id).ok_or_else(|| {
+                windows::hide_wheel(&app);
+                format!("unknown tool: {id}")
+            })?;
             if info.ui == orange_tools::ToolUi::None {
+                hide_after_choice(&app, &state, animate);
                 let job_id = start_tool(&app, &state, id, paths, json!({}));
                 Ok(json!({"kind": "job", "job_id": job_id}))
             } else {
+                windows::hide_wheel(&app);
                 open_tool_window_impl(&app, &id, &paths)?;
                 Ok(json!({"kind": "dialog"}))
             }
@@ -106,6 +110,19 @@ pub async fn wheel_commit(app: AppHandle, state: State<'_, AppState>, mode: Stri
     }
 }
 
+/// How long the wheel stays up after a choice so the "folds into a tick" animation can play.
+const COMMIT_ANIMATION_MS: u64 = 560;
+
+/// Hide the wheel after a choice that starts a job: at once, or after the animation when it is switched on
+/// (in the settings and by the page, which skips it when Windows asks for reduced motion).
+fn hide_after_choice(app: &AppHandle, state: &AppState, animate: Option<bool>) {
+    if animate.unwrap_or(false) && state.settings().commit_animation {
+        windows::hide_wheel_after_commit(app, COMMIT_ANIMATION_MS);
+    } else {
+        windows::hide_wheel(app);
+    }
+}
+
 #[tauri::command]
 pub fn wheel_cancel(app: AppHandle) {
     windows::hide_wheel(&app);
@@ -113,7 +130,8 @@ pub fn wheel_cancel(app: AppHandle) {
 
 fn start_convert(app: &AppHandle, state: &AppState, paths: Vec<String>, to: String) -> String {
     let files = pbs(&paths);
-    state.jobs.spawn(emitter(app), state.caps(), state.settings().out_dir(), move |ctx| {
+    let tracked = files.clone();
+    state.jobs.spawn_tracked(emitter(app), state.caps(), state.settings().out_dir(), tracked, move |ctx| {
         let mut outs = Vec::new();
         let n = files.len().max(1) as f32;
         for (i, f) in files.iter().enumerate() {
@@ -128,7 +146,8 @@ fn start_convert(app: &AppHandle, state: &AppState, paths: Vec<String>, to: Stri
 
 fn start_tool(app: &AppHandle, state: &AppState, tool_id: String, paths: Vec<String>, params: Value) -> String {
     let files = pbs(&paths);
-    state.jobs.spawn(emitter(app), state.caps(), state.settings().out_dir(), move |ctx| orange_tools::run_tool(&tool_id, &files, &params, ctx))
+    let tracked = files.clone();
+    state.jobs.spawn_tracked(emitter(app), state.caps(), state.settings().out_dir(), tracked, move |ctx| orange_tools::run_tool(&tool_id, &files, &params, ctx))
 }
 
 #[tauri::command]

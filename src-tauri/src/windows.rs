@@ -108,6 +108,22 @@ pub fn hide_wheel_later(app: &AppHandle, gen: u64, ms: u64) {
     });
 }
 
+/// After an option was chosen: keep the wheel on screen for `ms` so its "folds into a tick" animation can play,
+/// then hide it (unless a newer wheel opened meanwhile). The wheel is marked as no longer open straight away so the
+/// end-of-drag timer cannot cut the animation short.
+pub fn hide_wheel_after_commit(app: &AppHandle, ms: u64) {
+    let st = app.state::<AppState>();
+    let gen = st.wheel_gen.load(Ordering::SeqCst);
+    *st.wheel_visible.lock().unwrap() = false;
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(ms));
+        if app.state::<AppState>().wheel_gen.load(Ordering::SeqCst) == gen {
+            hide_wheel(&app);
+        }
+    });
+}
+
 fn build_main(app: &AppHandle, visible: bool) -> tauri::Result<WebviewWindow> {
     WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
         .title("Orange")

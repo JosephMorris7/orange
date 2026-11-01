@@ -97,6 +97,8 @@ function settingsCard(): HTMLElement {
         h('button', { class: 'btn', onclick: () => void pickFolder() }, 'Browse…'))),
     toggle('Start Orange when I sign in', s.launch_at_login, (v) => void save((x) => { x.launch_at_login = v; })),
     toggle('Show a notification when a job finishes', s.notifications, (v) => void save((x) => { x.notifications = v; })),
+    toggle('Show a small card by the tray when a job finishes (Show in folder, Undo)', s.finish_card, (v) => void save((x) => { x.finish_card = v; })),
+    toggle('Play a short animation when I choose an option on the wheel', s.commit_animation, (v) => void save((x) => { x.commit_animation = v; })),
     toggle('Play a short animation when Orange starts', s.startup_animation, (v) => void save((x) => { x.startup_animation = v; })),
     h('div', { class: 'field' }, h('label', { for: 'scale' }, `Wheel size · ${Math.round(s.wheel_scale * 100)}%`),
       h('input', { id: 'scale', type: 'range', min: 0.8, max: 1.4, step: 0.05, value: s.wheel_scale, onchange: (e) => void save((x) => { x.wheel_scale = Number((e.target as HTMLInputElement).value); }) })),

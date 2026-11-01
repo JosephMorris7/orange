@@ -2,7 +2,7 @@ import { api, isTauri, on, baseName, type Mode, type WheelItem, type WheelShow }
 import { icon } from './icons';
 
 // ---- geometry (viewBox units; the window is 640x640 logical at scale 1) -------------------------
-const SIZE = 640, C = 320, R_OUT = 262, R_IN = 94, GEO_GAP = 10, MAX_PER_PAGE = 8;
+const SIZE = 640, C = 320, R_OUT = 262, R_IN = 94, MAX_PER_PAGE = 8;
 const TAU = Math.PI * 2;
 
 interface Slot { item: WheelItem | null; more: boolean }
@@ -21,17 +21,23 @@ let loadSeq = 0;
 let moreTimer: number | undefined;
 let slots: Slot[] = [];
 let empty = false; // the file has been checked and nothing can be done with it
+let committing = false; // a choice was made and its short animation is playing
+let animateChoice = true; // the "play an animation when I choose" setting
 
 const titles: Record<Mode, string> = { convert: 'CONVERT', tools: 'TOOLS', actions: 'ACTIONS' };
 
 function point(r: number, a: number): [number, number] { return [C + r * Math.sin(a), C - r * Math.cos(a)]; }
 
+// The wedges are drawn inset by half the stroke width; the stroke (same colour, round joins)
+// then rounds the corners and gives the gaps the look of the Orange logo.
+const SLICE_STROKE = 18, SLICE_OUTLINE = 23, SLICE_GAP = 34;
 function wedgePath(a0: number, a1: number): string {
-  const go = (GEO_GAP / 2) / R_OUT, gi = (GEO_GAP / 2) / R_IN;
-  const [x0, y0] = point(R_OUT, a0 + go), [x1, y1] = point(R_OUT, a1 - go);
-  const [x2, y2] = point(R_IN, a1 - gi), [x3, y3] = point(R_IN, a0 + gi);
+  const ro = R_OUT - SLICE_STROKE / 2, ri = R_IN + SLICE_STROKE / 2;
+  const go = (SLICE_GAP / 2) / ro, gi = (SLICE_GAP / 2) / ri;
+  const [x0, y0] = point(ro, a0 + go), [x1, y1] = point(ro, a1 - go);
+  const [x2, y2] = point(ri, a1 - gi), [x3, y3] = point(ri, a0 + gi);
   const large = a1 - a0 > Math.PI ? 1 : 0;
-  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R_OUT} ${R_OUT} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} L${x2.toFixed(2)} ${y2.toFixed(2)} A${R_IN} ${R_IN} 0 ${large} 0 ${x3.toFixed(2)} ${y3.toFixed(2)}Z`;
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${ro} ${ro} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} L${x2.toFixed(2)} ${y2.toFixed(2)} A${ri} ${ri} 0 ${large} 0 ${x3.toFixed(2)} ${y3.toFixed(2)}Z`;
 }
 
 function buildSlots(): void {
@@ -64,6 +70,7 @@ function render(opening = false): void {
     const nn = arr.length, ww = TAU / nn;
     const mid = i * ww, a0 = mid - ww / 2, a1 = mid + ww / 2;
     const [lx, ly] = point((R_IN + R_OUT) / 2 + 6, mid);
+    const d = wedgePath(a0, a1);
     const it = s.item;
     const hot = i === hover && !ghost;
     const cls = ['wedge', hot ? 'hot' : '', it && !it.enabled ? 'off' : '', s.more ? 'more' : '', it && !it.icon ? 'big' : ''].join(' ');
@@ -71,22 +78,24 @@ function render(opening = false): void {
     if (s.more) inner = `<g class="ico" transform="translate(${lx - 12} ${ly - 20})">${icon('more', 24)}</g><text class="lbl" x="${lx}" y="${ly + 22}">MORE</text>`;
     else if (it?.icon) inner = `<g class="ico" transform="translate(${lx - 12} ${ly - 24})">${icon(it.icon, 24)}</g><text class="lbl" x="${lx}" y="${ly + 22}">${esc(it.label)}</text>`;
     else if (it) inner = `<text class="lbl" x="${lx}" y="${ly + 6}">${esc(it.label)}</text>`;
-    return `<g class="${cls}" data-i="${i}" style="--i:${i}"><path d="${wedgePath(a0, a1)}"/>${inner}</g>`;
+    return `<g class="${cls}" data-i="${i}" style="--i:${i}"><path class="o" d="${d}" stroke-width="${SLICE_OUTLINE}"/><path class="f" d="${d}" stroke-width="${SLICE_STROKE}"/><path class="rim" d="${d}"/><path class="sheen" d="${d}"/>${inner}</g>`;
   }).join('');
   void w;
   const c = centreText();
   stage.className = opening ? 'opening' : '';
   stage.innerHTML = `<svg class="wheel" viewBox="0 0 ${SIZE} ${SIZE}" role="application" aria-label="${titles[mode]} wheel">
-    <g class="disc-group"><circle class="shadow-ring" cx="${C}" cy="${C}" r="${R_OUT + 6}"/><circle class="disc" cx="${C}" cy="${C}" r="${R_OUT + 10}"/></g>
+    <defs><linearGradient id="wsh" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".16"/></linearGradient>
+    <linearGradient id="wrm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".5" stop-color="#ffd0a0" stop-opacity=".15"/><stop offset="1" stop-color="#fff" stop-opacity=".5"/></linearGradient></defs>
+    <g class="disc-group"><circle class="shadow-ring" cx="${C}" cy="${C}" r="${R_OUT - 8}"/><circle class="disc" cx="${C}" cy="${C}" r="${R_OUT + 10}"/></g>
     ${wedges}
-    <g class="hub-group"><circle class="hub" cx="${C}" cy="${C}" r="${R_IN - 10}"/>
-      <circle class="hub-dot" cx="${C}" cy="${C - 40}" r="3.5"/>
+    <g class="hub-group"><circle class="hub" cx="${C}" cy="${C}" r="${R_IN - 22}"/>
+      <circle class="hub-dot" cx="${C}" cy="${C - 42}" r="4"/>
       <text class="hub-title" x="${C}" y="${C + 4}">${esc(c.title)}</text><text class="hub-sub" x="${C}" y="${C + 26}">${esc(c.sub)}</text></g>
   </svg>`;
 }
 
 function updateHover(next: number): void {
-  if (next === hover) return;
+  if (committing || next === hover) return;
   hover = next;
   window.clearTimeout(moreTimer);
   const slot = hover >= 0 ? slots[hover] : undefined;
@@ -123,7 +132,23 @@ async function loadItems(): Promise<void> {
   render();
 }
 
+const reducedMotion = (): boolean => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+/// The chosen slice flashes and rings out, the others fold away, and the slice becomes a tick (about half a second).
+/// The window stays up for that long; Rust hides it afterwards.
+function playChoice(index: number): void {
+  committing = true;
+  window.clearTimeout(moreTimer);
+  const svg = stage.querySelector('svg.wheel');
+  if (!svg) return;
+  stage.className = 'committing';
+  stage.querySelectorAll('.wedge').forEach((g, i) => { g.classList.remove('hot'); g.classList.toggle('pick', i === index); });
+  svg.insertAdjacentHTML('afterbegin', `<circle class="ripple" cx="${C}" cy="${C}" r="150"/>`);
+  svg.insertAdjacentHTML('beforeend', `<g class="tick"><circle cx="${C}" cy="${C}" r="62"/><path d="M${C - 30} ${C + 2} L${C - 8} ${C + 24} L${C + 32} ${C - 26}" pathLength="100"/></g>`);
+}
+
 async function commit(index: number): Promise<void> {
+  if (committing) return;
   const slot = slots[index];
   if (!slot || slot.more || !slot.item || !paths.length) { void api.wheelCancel(); return; }
   if (!slot.item.enabled) {
@@ -133,11 +158,13 @@ async function commit(index: number): Promise<void> {
     window.setTimeout(() => void api.wheelCancel(), 1100);
     return;
   }
-  try { await api.wheelCommit(mode, slot.item.id, paths); } catch (e) { console.error(e); void api.wheelCancel(); }
+  const animate = animateChoice && mode !== 'actions' && !reducedMotion();
+  if (animate) playChoice(index);
+  try { await api.wheelCommit(mode, slot.item.id, paths, animate); } catch (e) { console.error(e); committing = false; void api.wheelCancel(); }
 }
 
 function reset(): void {
-  visible = false; paths = []; items = []; slots = []; hover = -1; page = 0; loadSeq++; empty = false;
+  visible = false; paths = []; items = []; slots = []; hover = -1; page = 0; loadSeq++; empty = false; committing = false;
   window.clearTimeout(moreTimer);
 }
 
@@ -148,7 +175,7 @@ function show(p: WheelShow): void {
   visible = true;
   document.body.classList.remove('hidden-wheel');
   if (p.paths && p.paths.length) paths = p.paths;
-  hover = -1; page = 0;
+  hover = -1; page = 0; committing = false;
   render(!wasVisible);
   if (paths.length) void loadItems();
 }
@@ -161,6 +188,7 @@ const toCss = (x: number, y: number) => ({ x: x / devicePixelRatio, y: y / devic
 let lastDropAt = 0;
 /// One handler for file drags, fed by both the native drop target (wheel:drag) and the web view's own events.
 function handleDrag(type: string, files: string[] | undefined, x: number, y: number): void {
+  if (committing) return; // a choice was just made; let its animation finish
   const c = toCss(x, y);
   if (type === 'enter') {
     void api.log(`drag enter: ${files?.length ?? 0} file(s), mode=${mode}`);
@@ -192,8 +220,11 @@ if (isTauri()) {
 // Pointer interaction: used when the wheel is opened without a drag (tray, settings button) and in the browser preview.
 stage.addEventListener('pointermove', (e) => updateHover(hitTest(e.clientX, e.clientY)));
 stage.addEventListener('pointerleave', () => updateHover(-1));
-stage.addEventListener('click', (e) => { const i = hitTest(e.clientX, e.clientY); if (i < 0) void api.wheelCancel(); else void commit(i); });
+stage.addEventListener('click', (e) => { if (committing) return; const i = hitTest(e.clientX, e.clientY); if (i < 0) void api.wheelCancel(); else void commit(i); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') void api.wheelCancel(); });
+
+void api.getSettings().then((st) => { animateChoice = st.commit_animation !== false; }).catch(() => undefined);
+void on<{ commit_animation?: boolean }>('settings:changed', (st) => { animateChoice = st.commit_animation !== false; });
 
 render();
 if (DEV) {

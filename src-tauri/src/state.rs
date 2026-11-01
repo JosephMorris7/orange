@@ -67,6 +67,13 @@ impl Emitter for TauriEmitter {
         if event == "job:done" {
             use tauri::Manager;
             use tauri_plugin_notification::NotificationExt;
+            // a finished job gets the card by the tray (when switched on) instead of a plain Windows notification;
+            // failures still use the notification below
+            let succeeded = payload["error"].is_null() && payload["cancelled"].as_bool() != Some(true) && payload["outputs"].as_array().map_or(false, |a| !a.is_empty());
+            if succeeded && self.app.state::<AppState>().settings().finish_card {
+                crate::finish::show(&self.app, &payload);
+                return;
+            }
             let notify = self.app.state::<AppState>().settings().notifications;
             if notify {
                 let outputs = payload["outputs"].as_array().map(|a| a.len()).unwrap_or(0);

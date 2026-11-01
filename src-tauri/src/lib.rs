@@ -3,6 +3,7 @@
 
 mod commands;
 mod fileactions;
+mod finish;
 mod geometry;
 mod jobs;
 mod logger;
@@ -174,6 +175,9 @@ pub fn run() {
             commands::open_wheel,
             commands::drag_icon,
             commands::log_line,
+            finish::finish_ready,
+            finish::finish_close,
+            finish::finish_undo,
             splash::splash_ready,
             splash::splash_opened,
             splash::splash_done,

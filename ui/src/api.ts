@@ -25,8 +25,10 @@ export interface Settings {
   output: { mode: 'beside' | 'folder'; folder: string | null };
   launch_at_login: boolean; notifications: boolean; wheel_scale: number;
   theme: 'system' | 'light' | 'dark'; first_run_done: boolean; startup_animation: boolean;
+  commit_animation: boolean; finish_card: boolean;
 }
 
+export interface FinishCard { title: string; detail: string; first_output: string; can_undo: boolean }
 export interface JobDone { job_id: string; outputs: string[]; error: string | null; cancelled: boolean }
 export interface JobProgress { job_id: string; fraction: number; message: string }
 export interface WheelShow { mode: Mode; x: number; y: number; scale: number; paths?: string[] | null }
@@ -63,7 +65,7 @@ export const api = {
   recheckHelpers: () => call<DepInfo>('recheck_helpers'),
   installLibreOffice: () => call<void>('install_libreoffice'),
   wheelItems: (mode: Mode, paths: string[]) => call<WheelItem[]>('wheel_items', { mode, paths }),
-  wheelCommit: (mode: Mode, id: string, paths: string[]) => call<{ kind: 'job'; job_id: string } | { kind: 'dialog' } | { kind: 'done' }>('wheel_commit', { mode, id, paths }),
+  wheelCommit: (mode: Mode, id: string, paths: string[], animate = false) => call<{ kind: 'job'; job_id: string } | { kind: 'dialog' } | { kind: 'done' }>('wheel_commit', { mode, id, paths, animate }),
   wheelCancel: () => call<void>('wheel_cancel'),
   runConvert: (paths: string[], to: string) => call<string>('run_convert', { paths, to }),
   runTool: (toolId: string, paths: string[], params: unknown) => call<string>('run_tool', { toolId, paths, params }),
@@ -86,6 +88,9 @@ export const api = {
   pickFiles: () => call<string[]>('pick_files'),
   openWheel: (mode: Mode, paths: string[]) => call<void>('open_wheel', { mode, paths }),
   dragIcon: () => call<string>('drag_icon'),
+  finishReady: () => call<FinishCard | null>('finish_ready'),
+  finishClose: () => call<void>('finish_close'),
+  finishUndo: () => call<number>('finish_undo'),
   log: (msg: string) => (isTauri() ? call<void>('log_line', { msg }).catch(() => undefined) : Promise.resolve()),
 };
 

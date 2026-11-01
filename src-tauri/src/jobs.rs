@@ -43,6 +43,16 @@ impl Jobs {
     where
         F: FnOnce(&Ctx) -> Result<Vec<PathBuf>> + Send + 'static,
     {
+        self.spawn_tracked(emitter, caps, out_dir, Vec::new(), work)
+    }
+
+    /// Like `spawn`, but remembers the input files so the final `job:done` event can say how big they were
+    /// (`in_bytes`) next to how big the results are (`out_bytes`), and which files went in (`inputs`).
+    pub fn spawn_tracked<F>(self: &Arc<Self>, emitter: Arc<dyn Emitter>, caps: Arc<Capabilities>, out_dir: Option<PathBuf>, inputs: Vec<PathBuf>, work: F) -> String
+    where
+        F: FnOnce(&Ctx) -> Result<Vec<PathBuf>> + Send + 'static,
+    {
+        let in_bytes = total_bytes(&inputs);
         let id = format!("job-{}", self.next.fetch_add(1, Ordering::SeqCst) + 1);
         let cancel = CancelToken::new();
         self.running.lock().unwrap().insert(id.clone(), cancel.clone());
@@ -62,7 +72,15 @@ impl Jobs {
                     .unwrap_or_else(|_| Err(Error::msg("the job crashed unexpectedly")));
                 jobs.running.lock().unwrap().remove(&job_id);
                 let payload = match result {
-                    Ok(outs) => json!({"job_id": job_id, "outputs": outs.iter().map(|p| p.to_string_lossy()).collect::<Vec<_>>(), "error": null, "cancelled": false}),
+                    Ok(outs) => json!({
+                        "job_id": job_id,
+                        "outputs": outs.iter().map(|p| p.to_string_lossy()).collect::<Vec<_>>(),
+                        "inputs": inputs.iter().map(|p| p.to_string_lossy()).collect::<Vec<_>>(),
+                        "in_bytes": in_bytes,
+                        "out_bytes": total_bytes(&outs),
+                        "error": null,
+                        "cancelled": false
+                    }),
                     Err(Error::Cancelled) => json!({"job_id": job_id, "outputs": [], "error": null, "cancelled": true}),
                     Err(e) => json!({"job_id": job_id, "outputs": [], "error": e.to_string(), "cancelled": false}),
                 };
@@ -71,6 +89,11 @@ impl Jobs {
             .expect("spawn job thread");
         id
     }
+}
+
+/// Combined size of the plain files in `paths` (folders and missing files count as 0).
+pub fn total_bytes(paths: &[PathBuf]) -> u64 {
+    paths.iter().filter_map(|p| std::fs::metadata(p).ok()).filter(|m| m.is_file()).map(|m| m.len()).sum()
 }
 
 #[cfg(test)]
@@ -118,6 +141,25 @@ mod tests {
         assert_eq!(progress[0]["message"], "halfway");
         assert_eq!(progress[0]["job_id"], id.as_str());
         assert_eq!(jobs.running_count(), 0);
+    }
+
+    #[test]
+    fn tracked_jobs_report_sizes() {
+        let dir = tempfile::tempdir().unwrap();
+        let (a, b) = (dir.path().join("in.txt"), dir.path().join("out.txt"));
+        std::fs::write(&a, vec![0u8; 1000]).unwrap();
+        let jobs = Jobs::new();
+        let (em, rx) = rec();
+        let (a2, b2) = (a.clone(), b.clone());
+        jobs.spawn_tracked(em, caps(), None, vec![a.clone()], move |_| {
+            std::fs::write(&b2, vec![0u8; 400]).unwrap();
+            let _ = &a2;
+            Ok(vec![b2.clone()])
+        });
+        let (_, done) = wait_done(&rx);
+        assert_eq!(done["in_bytes"], 1000);
+        assert_eq!(done["out_bytes"], 400);
+        assert_eq!(done["inputs"][0], a.to_string_lossy().as_ref());
     }
 
     #[test]

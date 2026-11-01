@@ -16,6 +16,7 @@ export default defineConfig({
         tool: resolve(__dirname, 'tool.html'),
         shelf: resolve(__dirname, 'shelf.html'),
         splash: resolve(__dirname, 'splash.html'),
+        finish: resolve(__dirname, 'finish.html'),
       },
     },
   },
