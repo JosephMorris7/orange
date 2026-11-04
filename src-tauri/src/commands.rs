@@ -367,6 +367,7 @@ pub fn set_settings(app: AppHandle, state: State<'_, AppState>, settings: Settin
             if let Err(e) = r {
                 log::warn!("autostart: {e}");
             }
+            crate::startup::sync(clean.launch_at_login);
         }
     }
     let _ = app.emit("settings:changed", &clean);

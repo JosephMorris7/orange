@@ -11,3 +11,10 @@
   ExecWait 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "if (Get-Command winget -ErrorAction SilentlyContinue) { winget install --id TheDocumentFoundation.LibreOffice -e --accept-package-agreements --accept-source-agreements } else { Start-Process https://www.libreoffice.org/download/download-libreoffice/; Write-Host Opened the LibreOffice download page. }; Start-Sleep -Seconds 4"'
   orange_lo_done:
 !macroend
+
+; Remove the sign-in task Orange creates, so nothing is left behind after uninstalling. Orange puts it back
+; the next time it starts (for an update) while "Start Orange when I sign in" is on.
+!macro NSIS_HOOK_PREUNINSTALL
+  nsExec::Exec `powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command "Unregister-ScheduledTask -TaskName 'Orange startup' -Confirm:$$false -ErrorAction SilentlyContinue"`
+  Pop $0
+!macroend

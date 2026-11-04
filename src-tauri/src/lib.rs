@@ -10,6 +10,7 @@ mod logger;
 mod session;
 mod settings;
 mod splash;
+mod startup;
 mod state;
 mod wheel;
 mod win;
@@ -122,6 +123,29 @@ fn apply_first_run_defaults(app: &AppHandle) {
     }
 }
 
+/// Every start: if "Start Orange when I sign in" is on but Windows no longer has the entry, put it back.
+/// The installer's uninstall step removes the entry when you upgrade, so without this an update would
+/// silently stop Orange from starting with Windows.
+fn repair_autostart(app: &AppHandle) {
+    use tauri_plugin_autostart::ManagerExt;
+    if !app.state::<AppState>().settings().launch_at_login {
+        return;
+    }
+    // the scheduled task starts Orange sooner than the startup entry; keep it in place and pointing at this copy
+    startup::sync(true);
+    let al = app.autolaunch();
+    match al.is_enabled() {
+        Ok(true) => {}
+        Ok(false) => {
+            log::info!("autostart was switched on but missing from Windows; adding it back");
+            if let Err(e) = al.enable() {
+                log::warn!("autostart repair: {e}");
+            }
+        }
+        Err(e) => log::warn!("autostart check: {e}"),
+    }
+}
+
 /// `Orange --demo-wheel [convert|tools|actions] [file…]` opens the wheel without any drag, for development.
 fn demo_wheel_args() -> Option<(String, Vec<String>)> {
     let args: Vec<String> = std::env::args().collect();
@@ -139,7 +163,12 @@ pub fn run() {
     logger::init(&settings::settings_path().with_file_name("orange.log"));
     let hidden = std::env::args().any(|a| a == "--hidden");
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| windows::show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            // A second copy started by Windows at sign-in (--hidden) must not pop the window open.
+            if !argv.iter().any(|a| a == "--hidden") {
+                windows::show_main(app);
+            }
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_drag::init())
@@ -207,23 +236,24 @@ pub fn run() {
             build_tray(&handle)?;
             spawn_session_worker(handle.clone());
             let first_run = !app.state::<AppState>().settings().first_run_done;
-            // A fresh install starts with Windows by default (once), so the wheel greets you after every boot.
+            // Starting with Windows is on by default, applied once: for a fresh install, and for a copy that was
+            // installed before this default existed (its saved settings still say "off" and were never asked).
             // The setting stays in the window and can be switched off.
-            if first_run && !app.state::<AppState>().settings().startup_default_applied {
+            if !app.state::<AppState>().settings().startup_default_applied {
                 apply_first_run_defaults(&handle);
             }
+            repair_autostart(&handle);
             let show_ui = first_run || !hidden;
             if let Some((mode, files)) = demo_wheel_args() {
                 windows::show_main(&handle);
                 windows::show_wheel(&handle, &mode, 0, 0, Some(files));
             } else {
                 // `--demo-startup` always plays the animation (development); otherwise it follows the setting.
-                // Orange's own window opens when the wheel has finished spinning, just as it drops into the tray. At sign-in the desktop is still loading,
-                // so wait a little longer before it starts.
+                // Orange's own window opens when the wheel has finished spinning, just as it drops into the tray. At sign-in it waits for the taskbar to exist, then a moment more.
                 let demo_startup = std::env::args().any(|a| a == "--demo-startup");
                 let animate = demo_startup || app.state::<AppState>().settings().startup_animation;
                 if animate {
-                    splash::start(&handle, if hidden { 3000 } else { 400 }, show_ui);
+                    splash::start(&handle, if hidden { 1200 } else { 400 }, show_ui);
                 } else if show_ui {
                     windows::show_main(&handle);
                 }

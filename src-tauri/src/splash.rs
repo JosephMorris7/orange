@@ -118,6 +118,26 @@ fn compute(app: &AppHandle) -> Option<Placement> {
     Some(Placement { monitor, plan: Plan { target_x: tx - monitor.left, target_y: ty - monitor.top, width: monitor.width(), height: monitor.height() } })
 }
 
+/// At sign-in, wait until the taskbar exists (the desktop is up), then `settle_ms` more, so the wheel
+/// comes a moment after the wallpaper appears and not before. Gives up waiting after 30 seconds.
+fn wait_for_desktop(settle_ms: u64) {
+    #[cfg(windows)]
+    {
+        use windows::core::w;
+        use windows::Win32::UI::WindowsAndMessaging::FindWindowW;
+        let started = std::time::Instant::now();
+        while started.elapsed() < std::time::Duration::from_secs(30) {
+            let found = unsafe { FindWindowW(w!("Shell_TrayWnd"), None) }.is_ok();
+            if found {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
+        log::info!(target: "splash", "desktop ready after {} ms", started.elapsed().as_millis());
+    }
+    std::thread::sleep(std::time::Duration::from_millis(settle_ms));
+}
+
 /// Play the animation after `delay_ms`. `show_ui` says whether Orange's own window should open as part of it.
 ///
 /// The order is: the wheel appears in the middle of the screen, spins, and the name "Orange" fades in under it.
@@ -129,7 +149,7 @@ pub fn start(app: &AppHandle, delay_ms: u64, show_ui: bool) {
     let app = app.clone();
     log::info!(target: "splash", "animation v3: will start in {delay_ms} ms (open the window during it: {show_ui})");
     let _ = std::thread::Builder::new().name("orange-splash".into()).spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+        wait_for_desktop(delay_ms);
         let mut ui_shown = false;
         let mut open_ui = |app: &AppHandle| {
             if show_ui && !ui_shown {
