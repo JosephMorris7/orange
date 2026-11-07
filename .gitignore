@@ -5,3 +5,6 @@ src-tauri/resources/bin/*
 !src-tauri/resources/bin/README.txt
 src-tauri/gen/
 *.log
+
+__pycache__/
+*.pyc

@@ -14,6 +14,8 @@
   &nbsp;·&nbsp;
   <a href="https://josephmorris7.github.io/orange/">Website</a>
   &nbsp;·&nbsp;
+  <a href="docs/Orange-Quick-Start-Guide.pdf">Quick start guide (PDF)</a>
+  &nbsp;·&nbsp;
   <a href="https://github.com/JosephMorris7/orange/releases/latest">All releases</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/JosephMorris7/orange/issues">Report a problem</a>
