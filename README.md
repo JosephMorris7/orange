@@ -46,7 +46,7 @@ Not supported: Pages and RTFD, which are macOS-only formats.
 
 ## Requirements
 
-- Windows 10 or 11, 64-bit. Tried by hand on Windows 11 only so far; Windows 10 is expected to work but is not yet confirmed (see Status).
+- Windows 10 or 11, 64-bit. Tried by hand on both.
 - The Microsoft Edge WebView2 runtime. It is built into Windows 11 and most up-to-date Windows 10 PCs.
 - About 350 MB of extra disk space if you add LibreOffice (for Word, Excel and PowerPoint files).
 - No internet connection is needed to use Orange.
@@ -94,8 +94,8 @@ Linux and macOS (engine and UI development only): run `scripts/fetch-deps.sh`, t
 ## Status
 
 - The engine, tools, drag-session logic, settings, job runner and file actions have automated tests (`cargo test --workspace`).
-- Tried by hand on Windows 11 x64: installing, the tray, settings, the wheel opening on a key tap during a drag, dropping on a wedge, and the Tools, Actions and shelf flows.
-- Least tested: Windows 10 (supported, not yet confirmed), the share sheet, OCR and face detection (WinRT), ARM64, multi-monitor layouts and unusual DPI settings.
+- Tried by hand on Windows 10 and 11 (x64): installing, the tray, settings, the wheel opening on a key tap during a drag, dropping on a wedge, and the Tools, Actions and shelf flows.
+- Least tested: the share sheet, OCR and face detection (WinRT), ARM64, multi-monitor layouts and unusual DPI settings.
 - Installers are unsigned, so SmartScreen will warn.
 
 Two things learned the hard way, documented in the code: the wheel needs its own invisible native drop-target window over it (`src-tauri/src/win/droptarget.rs`) because the web view's windows belong to another process and never receive a drag; and the overlay must never take focus or the drag is cancelled.
